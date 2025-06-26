@@ -13,14 +13,14 @@
     "electron:dev": "npm run build:electron && cross-env ELECTRON_DISABLE_SECURITY_WARNINGS=true electron .",
     "build": "tsc -b && vite build && npm run build:electron",
     "build:electron": "node scripts/build-electron.js",
-    "pack": "npm run build && electron-builder --dir",
-    "lint": "eslint .",
-    "preview": "vite preview",
     "dist": "npm run build && electron-builder",
+    "pack": "npm run build && electron-builder --dir",
     "dist:win": "npm run build && electron-builder --win",
     "dist:linux": "npm run build && electron-builder --linux",
     "dist:mac": "npm run build && electron-builder --mac",
     "icon": "electron-icon-builder --input=build/icon.png --output=build --flatten",
+    "lint": "eslint .",
+    "preview": "vite preview",
     "test": "jest"
   },
   "build": {
@@ -85,6 +85,7 @@
     "jest": "^30.0.3",
     "jest-environment-jsdom": "^30.0.2",
     "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.34.1",
     "vite": "^7.0.0"
