@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 interface IContainer {
-  isActive?: boolean;
+  $isActive: boolean;
 }
 
 export const Container = styled.div<IContainer>`
@@ -11,7 +11,7 @@ export const Container = styled.div<IContainer>`
   border-radius: 12px;
   overflow: hidden;
   background: ${(props) => {
-    return props.isActive ? `var(--primary-color-light)` : `transparent`;
+    return props.$isActive ? `var(--primary-color-light)` : `transparent`;
   }};
   &:hover {
     background: var(--primary-color-light);

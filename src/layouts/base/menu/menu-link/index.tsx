@@ -14,7 +14,7 @@ const MenuLink = (props: IMenuLinkProps): ReactNode => {
   const isActive = props.data.link === props.location.link;
 
   return (
-    <Container isActive={isActive && !props.data.event}>
+    <Container $isActive={isActive && !props.data.event}>
       {props.data.event ? (
         <LinkRoot onClick={props.data.event}>
           <LinkIcon>{<props.data.icon />}</LinkIcon>
