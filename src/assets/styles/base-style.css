@@ -1,0 +1,74 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --background-root: #f5f5f5;
+  --background-box: #ffffff;
+  --background-dark: #eee;
+  --background-scroolbox: #e2e0e0;
+  /*colors from infterfaces/styles.ts */
+  --primary-color: #0d58a6;
+  --primary-color-light: #1c6bbd;
+  --secondary-color: #ff7400;
+  --accept-color: #198754;
+  --info-color: #6c757d;
+  --error-color: #b02a37;
+  --warning-color: #ffc107;
+  --inherit-color: inherit;
+  /*backgrounds*/
+  --default-base-background: #ffffff;
+  /*color*/
+  --default-text-color: #111827;
+  /*animbations*/
+  --default-animations: all 0.225s ease-out;
+  /*disabled*/
+  --default-disabled-opacity: 0.7;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--default-text-color);
+  background-color: var(--default-base-background);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}

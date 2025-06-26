@@ -1,24 +1,30 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { Container } from './styles';
+import BaseLayout from './layouts/base';
+import './assets/styles/fonts.css';
+import './assets/styles/base-style.css';
 
-function App() {
+const App = (): ReactNode => {
   const [files, setFiles] = useState<string[]>([]);
 
-  const openFolder = async () => {
+  const openFolder = async (): Promise<void> => {
     const result = await window.api.openFolder();
     if (result) setFiles(result);
   };
 
   return (
-    <div>
-      <h1>Electron + React + TS</h1>
-      <button onClick={openFolder}>Открыть папку</button>
-      <ul>
-        {files.map((f, i) => (
-          <li key={i}>{f}</li>
-        ))}
-      </ul>
-    </div>
+    <Container>
+      <BaseLayout>
+        <h1>Electron + React + TS</h1>
+        <button onClick={openFolder}>Открыть папку</button>
+        <ul>
+          {files.map((f, i) => (
+            <li key={i}>{f}</li>
+          ))}
+        </ul>
+      </BaseLayout>
+    </Container>
   );
-}
+};
 
 export default App;
