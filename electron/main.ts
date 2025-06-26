@@ -41,13 +41,15 @@ app.commandLine.appendSwitch('--no-sandbox');
 
 // api
 ipcMain.handle('dialog:openFolder', async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
+  const opening: Electron.OpenDialogReturnValue = await dialog.showOpenDialog({
     properties: ['openDirectory'],
   });
 
-  if (canceled || filePaths.length === 0) return [];
+  console.log(111, opening);
 
-  return fs.readdirSync(filePaths[0]);
+  if (opening.canceled || opening.filePaths.length === 0) return [];
+
+  return fs.readdirSync(opening.filePaths[0]);
 });
 
 app.on('window-all-closed', () => {

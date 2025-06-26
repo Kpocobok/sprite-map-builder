@@ -52,11 +52,12 @@ import_electron.app.whenReady().then(() => {
 });
 import_electron.app.commandLine.appendSwitch("--no-sandbox");
 import_electron.ipcMain.handle("dialog:openFolder", async () => {
-  const { canceled, filePaths } = await import_electron.dialog.showOpenDialog({
+  const opening = await import_electron.dialog.showOpenDialog({
     properties: ["openDirectory"]
   });
-  if (canceled || filePaths.length === 0) return [];
-  return fs.readdirSync(filePaths[0]);
+  console.log(111, opening);
+  if (opening.canceled || opening.filePaths.length === 0) return [];
+  return fs.readdirSync(opening.filePaths[0]);
 });
 import_electron.app.on("window-all-closed", () => {
   if (process.platform !== "darwin") import_electron.app.quit();
