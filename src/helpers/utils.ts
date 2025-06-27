@@ -23,7 +23,7 @@ export const pixiColorToHEX = (color: number): string => {
  * @param hex текст цвета HEX
  * @returns текст в формате rgba(R, G, B, alpha)
  */
-export const hexToRgba = (hex: string): string => {
+export const hexToRgba = (hex: string, alpha: number | null = null): string => {
   let cleaned = hex.replace(/^#/, '');
 
   if (cleaned.length === 3 || cleaned.length === 4) {
@@ -43,7 +43,7 @@ export const hexToRgba = (hex: string): string => {
   const r = parseInt(cleaned.slice(0, 2), 16);
   const g = parseInt(cleaned.slice(2, 4), 16);
   const b = parseInt(cleaned.slice(4, 6), 16);
-  const a = parseInt(cleaned.slice(6, 8), 16) / 255;
+  const a = alpha ? alpha : parseInt(cleaned.slice(6, 8), 16) / 255;
 
   return `rgba(${r},${g},${b},${a})`;
 };

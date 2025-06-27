@@ -4,7 +4,11 @@ import { Container } from './styles';
 const Home = (): ReactNode => {
   const [files, setFiles] = useState<string[]>([]);
 
+  if (!window.api?.openFolder) return null;
+
   const openFolder = async (): Promise<void> => {
+    if (!window.api?.openFolder) return;
+
     const result = await window.api.openFolder();
     if (result) setFiles(result);
   };

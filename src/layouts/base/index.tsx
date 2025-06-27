@@ -4,8 +4,8 @@ import { Container, SideBar } from './styles';
 import { useLocation } from 'react-router';
 import { menu } from '../../constants/router';
 import { find } from 'lodash';
-import Header from './header';
 import Menu from './menu';
+import ModalRender from '../../components/modals';
 
 interface IProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ const BaseLayout = (props: IProps): ReactNode => {
 
   return (
     <Container>
-      <Header location={locationItem} />
+      <ModalRender />
       <SideBar>
         <Menu location={locationItem} />
       </SideBar>

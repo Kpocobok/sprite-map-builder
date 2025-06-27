@@ -45,8 +45,6 @@ ipcMain.handle('dialog:openFolder', async () => {
     properties: ['openDirectory'],
   });
 
-  console.log(111, opening);
-
   if (opening.canceled || opening.filePaths.length === 0) return [];
 
   return fs.readdirSync(opening.filePaths[0]);
