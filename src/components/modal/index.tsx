@@ -6,11 +6,11 @@ import {
   FContainer,
   HContainer,
   Title,
-  ButtonClose,
 } from './styles';
 import IconClose from '../icons/IconClose';
 import { useDispatch } from 'react-redux';
 import { closeModal } from '../../store/slices/app';
+import Button from '../button';
 
 interface IChildren {
   children?: ReactNode;
@@ -34,9 +34,13 @@ export const ModalHeader = (props: IChildren): ReactNode => {
   return (
     <HContainer>
       <Title>{props.children}</Title>
-      <ButtonClose onClick={() => dispatch(closeModal())}>
+      <Button
+        $radius="100%"
+        $padding="8px"
+        onClick={() => dispatch(closeModal())}
+      >
         <IconClose />
-      </ButtonClose>
+      </Button>
     </HContainer>
   );
 };

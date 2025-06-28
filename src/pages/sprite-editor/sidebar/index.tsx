@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import {
-  Button,
   ButtonContent,
   Container,
   ControllPanel,
@@ -12,6 +11,7 @@ import IconSettings from '../../../components/icons/IconSettings';
 import { useDispatch } from 'react-redux';
 import { setModal } from '../../../store/slices/app';
 import { MESH_SETTINGS } from '../../../constants/modals';
+import Button from '../../../components/button';
 
 const SideBar = (): ReactNode => {
   const dispatch = useDispatch();
@@ -26,7 +26,7 @@ const SideBar = (): ReactNode => {
             <Icon>
               <IconObjectGroup />
             </Icon>
-            <ButtonContent>Настройка сетки</ButtonContent>
+            <ButtonContent>Настройка поля</ButtonContent>
           </Button>
           <Button>
             <Icon>

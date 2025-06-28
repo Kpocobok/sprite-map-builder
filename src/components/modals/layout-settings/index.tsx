@@ -1,0 +1,174 @@
+import { useEffect, useState, type ReactNode } from 'react';
+import Modal, {
+  ModalBody,
+  ModalContainer,
+  ModalFooter,
+  ModalHeader,
+} from '../../modal';
+import Button from '../../button';
+import Radio, { type IRadioOption } from '../../radio';
+import { useDispatch, useSelector } from 'react-redux';
+import { closeModal, setLayout } from '../../../store/slices/app';
+import Grid from '../../grid';
+import InputText from '../../input-text';
+import { DEFAULT_MESH_TYPES } from '../../../constants/default';
+import type { ILayoutSettings, IRootState } from '../../../interfaces/store';
+import { FormContainer, FormTitleContainer } from './styles';
+
+interface IError {
+  horizontal: string;
+  vertical: string;
+  width: string;
+  height: string;
+}
+
+const MeshSettings = (): ReactNode => {
+  const dispatch = useDispatch();
+  const layoutStore = useSelector<IRootState, ILayoutSettings>(
+    (state) => state.app.layout,
+  );
+  const radioOptions: IRadioOption[] = [
+    {
+      text: 'Обычная',
+      value: DEFAULT_MESH_TYPES[0],
+    },
+    {
+      text: 'Изометрическая',
+      value: DEFAULT_MESH_TYPES[1],
+    },
+  ];
+
+  const [layout, setCurrentLayout] = useState<ILayoutSettings>(layoutStore);
+  const [errors, setErrors] = useState<Partial<IError>>({});
+
+  useEffect(() => {
+    checkErrors();
+  }, [layout]);
+
+  const checkErrors = () => {
+    const e: Partial<IError> = {};
+
+    if (!layout.width) {
+      e.width = 'Значение ширины поля не может быть пустым';
+    } else delete e.width;
+
+    if (!layout.height) {
+      e.width = 'Значение ширины поля не может быть пустым';
+    } else delete e.height;
+
+    if (!layout.horizontal) {
+      e.horizontal = 'Необходимо указать ширину ячейки сетки';
+    } else if (layout.horizontal >= layout.width) {
+      e.horizontal = 'Ширина ячейки не может быть больше или равна ширине поля';
+    } else delete e.horizontal;
+
+    if (!layout.vertical) {
+      e.vertical = 'Необходимо указать ширину ячейки сетки';
+    } else if (layout.vertical >= layout.height) {
+      e.vertical = 'Высота ячейки не может быть больше или ровна высоте поля';
+    } else delete e.vertical;
+
+    setErrors(e);
+  };
+
+  const handleChangeMesh = (
+    field: keyof ILayoutSettings,
+    value: string,
+  ): void => {
+    if (['horizontal', 'vertical', 'width', 'height'].includes(field)) {
+    }
+
+    const val: string | number = [
+      'horizontal',
+      'vertical',
+      'width',
+      'height',
+    ].includes(field)
+      ? parseInt(value.trim())
+      : value.trim();
+    setCurrentLayout({ ...layout, [field]: val });
+  };
+
+  const handleSaveLayout = () => {
+    if (Object.values(errors).length) return;
+
+    dispatch(setLayout(layout));
+    dispatch(closeModal());
+  };
+
+  return (
+    <Modal>
+      <ModalContainer>
+        <ModalHeader>Настройка поля</ModalHeader>
+        <ModalBody>
+          <Grid $rowsGap="12px">
+            <Radio
+              label="Тип сетки:"
+              value={layout.type.toString()}
+              options={radioOptions}
+              onChange={(value: string) => handleChangeMesh('type', value)}
+            />
+            <FormContainer>
+              <FormTitleContainer>Настройки ячеек сетки:</FormTitleContainer>
+              <Grid $columns={2} $columnsGap="12px">
+                <InputText
+                  onlyNumber
+                  label="Длина ячейки"
+                  value={layout.horizontal.toString()}
+                  error={errors.horizontal || ''}
+                  onChange={(value: string) =>
+                    handleChangeMesh('horizontal', value)
+                  }
+                />
+                <InputText
+                  onlyNumber
+                  label="Высота ячейки"
+                  value={layout.vertical.toString()}
+                  error={errors.vertical || ''}
+                  onChange={(value: string) =>
+                    handleChangeMesh('vertical', value)
+                  }
+                />
+              </Grid>
+            </FormContainer>
+            <FormContainer>
+              <FormTitleContainer>Настройки рабочего поля:</FormTitleContainer>
+              <Grid $columns={2} $columnsGap="12px">
+                <InputText
+                  onlyNumber
+                  label="Длина поля"
+                  error={errors.width || ''}
+                  value={layout.width.toString()}
+                  onChange={(value: string) => handleChangeMesh('width', value)}
+                />
+                <InputText
+                  onlyNumber
+                  label="Высота поля"
+                  error={errors.height || ''}
+                  value={layout.height.toString()}
+                  onChange={(value: string) =>
+                    handleChangeMesh('height', value)
+                  }
+                />
+              </Grid>
+            </FormContainer>
+          </Grid>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            $padding="8px 16px"
+            $radius="16px"
+            onClick={() => dispatch(closeModal())}
+          >
+            Отмена
+          </Button>
+          <Button $padding="8px 16px" $radius="16px" onClick={handleSaveLayout}>
+            Сохранить
+          </Button>
+        </ModalFooter>
+      </ModalContainer>
+    </Modal>
+  );
+};
+
+export default MeshSettings;

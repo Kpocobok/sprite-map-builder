@@ -1,8 +1,14 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { IInitStateApp, IModal } from '../../../interfaces/store';
+import type {
+  IInitStateApp,
+  ILayoutSettings,
+  IModal,
+} from '../../../interfaces/store';
+import { DEFAULT_LAYOUT } from '../../../constants/default';
 
 const initialState: IInitStateApp = {
   loading: false,
+  layout: DEFAULT_LAYOUT,
   modals: [],
 };
 
@@ -22,10 +28,13 @@ export const appSlice = createSlice({
     closeModals: (state) => {
       state.modals = [];
     },
+    setLayout: (state, action: PayloadAction<ILayoutSettings>) => {
+      state.layout = action.payload;
+    },
   },
 });
 
-export const { setLoading, setModal, closeModal, closeModals } =
+export const { setLoading, setModal, closeModal, closeModals, setLayout } =
   appSlice.actions;
 
 export default appSlice.reducer;

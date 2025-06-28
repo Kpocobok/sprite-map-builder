@@ -57,23 +57,3 @@ export const HContainer = styled.div`
 export const Title = styled.div`
   font-size: 20px;
 `;
-
-export const ButtonClose = styled.div`
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--background-box);
-  border: 1px solid transparent;
-  border-radius: 4px;
-  font-size: 10px;
-  transition: all 0.3s linear;
-  cursor: pointer;
-  border-radius: 100%;
-  box-shadow: inset 0 0 10px #001683;
-  &:hover {
-    background: ${hexToRgba('#ffffff', 0.12)};
-    box-shadow: inset 0 0 10px #260393;
-  }
-`;

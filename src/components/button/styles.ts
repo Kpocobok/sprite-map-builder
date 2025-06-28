@@ -1,14 +1,23 @@
 import styled from 'styled-components';
 import { hexToRgba } from '../../helpers/utils';
 
-export const Container = styled.div`
+interface IContainer {
+  $padding?: string;
+  $radius?: string;
+}
+
+export const Container = styled.div<IContainer>`
   display: flex;
   align-items: center;
-  padding: 8px 22px;
+  padding: ${(props) => {
+    return props.$padding || `4px 8px`;
+  }};
   font-size: 14px;
   color: var(--background-box);
   border: 1px solid transparent;
-  border-radius: 16px;
+  border-radius: ${(props) => {
+    return props.$radius || `16px`;
+  }};
   cursor: pointer;
   transition: all 0.1s linear;
   box-shadow: inset 0 0 10px #001683;
