@@ -88,8 +88,8 @@ export const updateLayout = (layout: ILayoutSettings): void => {
     mesh.moveTo(x * layout.horizontal, 0);
     mesh.lineTo(startPoint + x * layout.horizontal, layout.height);
 
-    mesh.moveTo(x * layout.horizontal, 0);
-    mesh.lineTo(-startPoint + x * layout.horizontal, layout.height);
+    // mesh.moveTo(x * layout.horizontal, 0);
+    // mesh.lineTo(-startPoint + x * layout.horizontal, layout.height);
 
     // mesh.moveTo(x * layout.horizontal, layout.height);
     // mesh.lineTo(startPoint + x * layout.horizontal, 0);
