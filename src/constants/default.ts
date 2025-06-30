@@ -10,13 +10,23 @@ export const DEFAULT_PIXI_APPLICATION_BG: string = '#f5f5f5';
 export const DEFAULT_MESH_ID: string = 'mesh';
 export const DEFAULT_BG_ID: string = 'bg';
 export const DEFAULT_LAYERS_ID: string = 'layers';
+export const DEFAULT_TOPSTAGE_ID: string = 'topstage';
 
 export const DEFAULT_MESH_TYPES: MESH_TYPES[] = ['default', 'isometric'];
 
 export const DEFAULT_LAYOUT: ILayoutSettings = {
   type: DEFAULT_MESH_TYPES[0],
-  horizontal: 16,
-  vertical: 16,
+  horizontal: 32,
+  vertical: 32,
+  meshColor: '#E0E0E0',
+  meshWidth: 1,
+  osColor: '#ff0000',
+  osWidth: 1,
+  textColor: '#000000',
+  textSize: 8,
   width: window.innerWidth,
   height: window.innerHeight,
+  showMesh: true,
+  showOs: true,
+  showText: true,
 };

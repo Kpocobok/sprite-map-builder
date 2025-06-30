@@ -6,8 +6,17 @@ export interface ILayoutSettings {
   type: MESH_TYPES;
   horizontal: number;
   vertical: number;
+  meshColor: string;
+  meshWidth: number;
+  osColor: string;
+  osWidth: number;
+  textColor: string;
+  textSize: number;
   width: number;
   height: number;
+  showMesh?: boolean;
+  showOs?: boolean;
+  showText?: boolean;
 }
 
 export interface IModal {

@@ -14,6 +14,8 @@ import InputText from '../../input-text';
 import { DEFAULT_MESH_TYPES } from '../../../constants/default';
 import type { ILayoutSettings, IRootState } from '../../../interfaces/store';
 import { FormContainer, FormTitleContainer } from './styles';
+import { cloneDeep } from 'lodash';
+import InputColor from '../../input-color';
 
 interface IError {
   horizontal: string;
@@ -92,7 +94,10 @@ const MeshSettings = (): ReactNode => {
   const handleSaveLayout = () => {
     if (Object.values(errors).length) return;
 
-    dispatch(setLayout(layout));
+    const data: ILayoutSettings = cloneDeep(layout);
+    data.vertical = data.type === 'isometric' ? data.vertical : data.horizontal;
+
+    dispatch(setLayout(data));
     dispatch(closeModal());
   };
 
@@ -113,20 +118,83 @@ const MeshSettings = (): ReactNode => {
               <Grid $columns={2} $columnsGap="12px">
                 <InputText
                   onlyNumber
-                  label="Длина ячейки"
+                  label={
+                    layout.type === 'isometric'
+                      ? 'Длина ячейки'
+                      : 'Длина и высота ячейки'
+                  }
                   value={layout.horizontal.toString()}
                   error={errors.horizontal || ''}
                   onChange={(value: string) =>
                     handleChangeMesh('horizontal', value)
                   }
                 />
+                {layout.type === 'isometric' ? (
+                  <InputText
+                    onlyNumber
+                    label="Высота ячейки"
+                    value={layout.vertical.toString()}
+                    error={errors.vertical || ''}
+                    onChange={(value: string) =>
+                      handleChangeMesh('vertical', value)
+                    }
+                  />
+                ) : null}
+              </Grid>
+            </FormContainer>
+            <FormContainer>
+              <FormTitleContainer>
+                Настройки толщины линий и шрифта
+              </FormTitleContainer>
+              <Grid $columns={3} $columnsGap="12px">
                 <InputText
                   onlyNumber
-                  label="Высота ячейки"
-                  value={layout.vertical.toString()}
-                  error={errors.vertical || ''}
+                  label="Толщина линии сетки (px)"
+                  value={layout.meshWidth.toString()}
                   onChange={(value: string) =>
-                    handleChangeMesh('vertical', value)
+                    handleChangeMesh('meshWidth', value)
+                  }
+                />
+                <InputText
+                  onlyNumber
+                  label="Толщина линии осей (px)"
+                  value={layout.osWidth.toString()}
+                  onChange={(value: string) =>
+                    handleChangeMesh('osWidth', value)
+                  }
+                />
+                <InputText
+                  onlyNumber
+                  label="Размер шрифта кор-нат (px)"
+                  value={layout.textSize.toString()}
+                  onChange={(value: string) =>
+                    handleChangeMesh('textSize', value)
+                  }
+                />
+              </Grid>
+            </FormContainer>
+            <FormContainer>
+              <FormTitleContainer>Настройка цвета сетки:</FormTitleContainer>
+              <Grid $columns={3} $columnsGap="12px">
+                <InputColor
+                  label="Цвет сетки"
+                  value={layout.meshColor}
+                  onChange={(value: string) =>
+                    handleChangeMesh('meshColor', value)
+                  }
+                />
+                <InputColor
+                  label="Цвет осей"
+                  value={layout.osColor}
+                  onChange={(value: string) =>
+                    handleChangeMesh('osColor', value)
+                  }
+                />
+                <InputColor
+                  label="Цвет координат"
+                  value={layout.textColor}
+                  onChange={(value: string) =>
+                    handleChangeMesh('textColor', value)
                   }
                 />
               </Grid>
@@ -136,14 +204,14 @@ const MeshSettings = (): ReactNode => {
               <Grid $columns={2} $columnsGap="12px">
                 <InputText
                   onlyNumber
-                  label="Длина поля"
+                  label="Длина поля (px)"
                   error={errors.width || ''}
                   value={layout.width.toString()}
                   onChange={(value: string) => handleChangeMesh('width', value)}
                 />
                 <InputText
                   onlyNumber
-                  label="Высота поля"
+                  label="Высота поля (px)"
                   error={errors.height || ''}
                   value={layout.height.toString()}
                   onChange={(value: string) =>

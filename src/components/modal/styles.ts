@@ -19,6 +19,7 @@ export const Container = styled.div`
   justify-content: center;
   z-index: 100;
   background: ${hexToRgba('#000000', 0.36)};
+  backdrop-filter: blur(3px);
 `;
 
 export const MContainer = styled.div<IMContainer>`
