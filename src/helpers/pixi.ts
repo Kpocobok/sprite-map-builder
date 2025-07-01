@@ -117,7 +117,7 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
     const width: number = layout.width + SIDEBAR_WIDTH;
     const height: number = layout.height;
     // получаем удлененное ребро по горизонтале, так чтобы плоскость оказалось внутри виртуального треугольника
-    const fullWidth = width + height * Math.tan(betta);
+    const fullWidth = width + height * Math.tan(alpha);
     // получаем шаги начальных точек по горизонтале в рамках удлиненного горизонтального ребра
     const stepsX: number = Math.ceil(fullWidth / layout.horizontal);
     const stepsY: number = Math.ceil(height / layout.vertical);
@@ -125,13 +125,13 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
     for (let x = 0; x < stepsX; x++) {
         // начальная точка /
         const startX = x * layout.horizontal >= width ? width : x * layout.horizontal;
-        const startY = x * layout.horizontal >= width ? (width - x * layout.horizontal) * Math.tan(betta) : 0;
+        const startY = x * layout.horizontal >= width ? (x * layout.horizontal - width) * Math.tan(betta) : 0;
         // конечная точка /
         const endY = x * layout.horizontal * Math.tan(betta) >= height ? height : x * layout.horizontal * Math.tan(betta);
         const endX = x * layout.horizontal * Math.tan(betta) >= height ? (x * layout.horizontal * Math.tan(betta) - height) * Math.tan(alpha) : 0;
         // конечная точка \
         const endSX = x * layout.horizontal + height * Math.tan(alpha) >= width ? width : x * layout.horizontal + height * Math.tan(alpha);
-        const endSY = x * layout.horizontal + height * Math.tan(alpha) >= width ? width - (layout.horizontal + height * Math.tan(alpha)) * Math.tan(betta) : height;
+        const endSY = x * layout.horizontal + height * Math.tan(alpha) >= width ? height - (x * layout.horizontal + height * Math.tan(alpha) - width) * Math.tan(betta) : height;
         // добавляем в массив
         osX.push({startX, startY, endX, endY, endSX, endSY});
     }
@@ -142,7 +142,7 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
         const startY = x * layout.vertical;
         // конечная точка \
         const endX = (height - x * layout.vertical) * Math.tan(alpha) >= width ? width : (height - x * layout.vertical) * Math.tan(alpha);
-        const endY = (height - x * layout.vertical) * Math.tan(alpha) >= width ? (width - (height - x * layout.vertical) * Math.tan(alpha)) * Math.tan(alpha) : height;
+        const endY = (height - x * layout.vertical) * Math.tan(alpha) >= width ? ((height - x * layout.vertical) * Math.tan(alpha) - width) * Math.tan(alpha) : height;
         // добавляем в массив
         osY.push({startX, startY, endX, endY});
     }
@@ -157,13 +157,6 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
  */
 export const updateLayout = (layout: ILayoutSettings): void => {
     if (!window.ApiCanvasPixi || !window.ApiCanvasPixiContainerRegister) return;
-
-    // учитываем сайдбарк
-    const realWidth: number = layout.width + SIDEBAR_WIDTH;
-    const realHeight: number = layout.height;
-
-    window.ApiCanvasPixi.screen.width = realWidth;
-    window.ApiCanvasPixi.screen.height = realHeight;
 
     const meshContainer: PIXI.Container = window.ApiCanvasPixiContainerRegister.get(DEFAULT_MESH_ID) as PIXI.Container;
 
@@ -195,72 +188,72 @@ export const updateLayout = (layout: ILayoutSettings): void => {
         }
     }
 
-    // if (layout.showOs) {
-    //     if (layout.type === 'default') {
-    //         const middleX = Math.ceil(numberCellsHorizont / 2) * layout.horizontal;
-    //         const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
-    //         // Y
-    //         oses.beginPath();
-    //         oses.moveTo(middleX, 0);
-    //         oses.lineTo(middleX, layout.height);
-    //         oses.stroke({
-    //             width: layout.osWidth,
-    //             color: hexToPixiColor(layout.osColor)
-    //         });
-    //         oses.closePath();
-    //         // X
-    //         oses.beginPath();
-    //         oses.moveTo(0, middleY);
-    //         oses.lineTo(layout.width + SIDEBAR_WIDTH, middleY);
-    //         oses.stroke({
-    //             width: layout.osWidth,
-    //             color: hexToPixiColor(layout.osColor)
-    //         });
-    //         oses.closePath();
-    //         // рисуем оси для изометрии
-    //     } else if (layout.type === 'isometric') {
-    //         // рисуем обычные оси
-    //     } else return;
-    // }
+    if (layout.showOs) {
+        if (layout.type === 'default') {
+            const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
+            const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
+            // Y
+            oses.beginPath();
+            oses.moveTo(middleX, 0);
+            oses.lineTo(middleX, layout.height);
+            oses.stroke({
+                width: layout.osWidth,
+                color: hexToPixiColor(layout.osColor)
+            });
+            oses.closePath();
+            // X
+            oses.beginPath();
+            oses.moveTo(0, middleY);
+            oses.lineTo(layout.width + SIDEBAR_WIDTH, middleY);
+            oses.stroke({
+                width: layout.osWidth,
+                color: hexToPixiColor(layout.osColor)
+            });
+            oses.closePath();
+            // рисуем оси для изометрии
+        } else if (layout.type === 'isometric') {
+            // рисуем обычные оси
+        } else return;
+    }
 
-    // if (layout.showText) {
-    //     if (layout.type === 'default') {
-    //         const realNumberCellsVertical = Math.ceil(layout.height / layout.vertical);
-    //         const partHorizont = -Math.ceil(numberCellsHorizont / 2);
-    //         const partVertical = Math.ceil(realNumberCellsVertical / 2);
+    if (layout.showText) {
+        if (layout.type === 'default') {
+            const realNumberCellsVertical = Math.ceil(layout.height / layout.vertical);
+            const partHorizont = -Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2);
+            const partVertical = Math.ceil(realNumberCellsVertical / 2);
 
-    //         let indexX = 0;
-    //         let indexY = 0;
-    //         for (let x = 0; x < numberCellsHorizont; x++) {
-    //             indexY = 0;
-    //             for (let y = 0; y < realNumberCellsVertical; y++) {
-    //                 const style: PIXI.TextStyle = new PIXI.TextStyle({
-    //                     fontFamily: 'Montserrat',
-    //                     fontSize: layout.textSize,
-    //                     fill: layout.textColor
-    //                 });
+            let indexX = 0;
+            let indexY = 0;
+            for (let x = 0; x < (layout.width + SIDEBAR_WIDTH) / layout.horizontal; x++) {
+                indexY = 0;
+                for (let y = 0; y < realNumberCellsVertical; y++) {
+                    const style: PIXI.TextStyle = new PIXI.TextStyle({
+                        fontFamily: 'Montserrat',
+                        fontSize: layout.textSize,
+                        fill: layout.textColor
+                    });
 
-    //                 indexX = partHorizont + x === 0 ? 1 : indexX;
-    //                 indexY = partVertical - y === 0 ? 1 : indexY;
+                    indexX = partHorizont + x === 0 ? 1 : indexX;
+                    indexY = partVertical - y === 0 ? 1 : indexY;
 
-    //                 const contentX = partHorizont + x + indexX;
-    //                 const contentY = partVertical - y - indexY;
+                    const contentX = partHorizont + x + indexX;
+                    const contentY = partVertical - y - indexY;
 
-    //                 const text: PIXI.Text = new PIXI.Text({
-    //                     text: `${contentX}:${contentY}`,
-    //                     style
-    //                 });
+                    const text: PIXI.Text = new PIXI.Text({
+                        text: `${contentX}:${contentY}`,
+                        style
+                    });
 
-    //                 text.x = x * layout.horizontal + layout.horizontal / 2 - text.width / 2;
-    //                 text.y = y * layout.vertical + layout.vertical / 2 - text.height / 2;
+                    text.x = x * layout.horizontal + layout.horizontal / 2 - text.width / 2;
+                    text.y = y * layout.vertical + layout.vertical / 2 - text.height / 2;
 
-    //                 coordinats.addChild(text);
-    //             }
-    //         }
-    //     } else if (layout.type === 'isometric') {
-    //         // выставляем данные о ячейках
-    //     } else return;
-    // }
+                    coordinats.addChild(text);
+                }
+            }
+        } else if (layout.type === 'isometric') {
+            // выставляем данные о ячейках
+        } else return;
+    }
 
     meshContainer.addChild(mesh);
     meshContainer.addChild(coordinats);
