@@ -12,6 +12,8 @@ export const DEFAULT_BG_ID: string = 'bg';
 export const DEFAULT_LAYERS_ID: string = 'layers';
 export const DEFAULT_TOPSTAGE_ID: string = 'topstage';
 
+export const SIDEBAR_WIDTH: number = 400;
+
 export const DEFAULT_MESH_TYPES: MESH_TYPES[] = ['default', 'isometric'];
 
 export const DEFAULT_LAYOUT: ILayoutSettings = {

@@ -5,6 +5,7 @@ import {
   DEFAULT_BG_ID,
   DEFAULT_LAYERS_ID,
   DEFAULT_TOPSTAGE_ID,
+  SIDEBAR_WIDTH,
 } from '../constants/default';
 import { hexToPixiColor } from './utils';
 
@@ -43,9 +44,13 @@ export const createDefaultContainers = (): void => {
   if (!window.ApiCanvasPixi) return;
 
   const meshContainer: PIXI.Container = new PIXI.Container();
+  meshContainer.x = -SIDEBAR_WIDTH;
   const backgroundContainer: PIXI.Container = new PIXI.Container();
+  backgroundContainer.x = -SIDEBAR_WIDTH;
   const layersContainer: PIXI.Container = new PIXI.Container();
+  layersContainer.x = -SIDEBAR_WIDTH;
   const topStage: PIXI.Container = new PIXI.Container();
+  topStage.x = -SIDEBAR_WIDTH;
 
   window.ApiCanvasPixi.stage.addChild(backgroundContainer);
   window.ApiCanvasPixi.stage.addChild(meshContainer);
@@ -68,7 +73,7 @@ export const createDefaultContainers = (): void => {
 export const updateLayout = (layout: ILayoutSettings): void => {
   if (!window.ApiCanvasPixi || !window.ApiCanvasPixiContainerRegister) return;
 
-  window.ApiCanvasPixi.screen.width = layout.width;
+  window.ApiCanvasPixi.screen.width = layout.width + SIDEBAR_WIDTH;
   window.ApiCanvasPixi.screen.height = layout.height;
 
   const meshContainer: PIXI.Container =
@@ -81,7 +86,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
   const mesh: PIXI.Graphics = new PIXI.Graphics();
   const coordinats: PIXI.Container = new PIXI.Container();
   const oses: PIXI.Graphics = new PIXI.Graphics();
-  coordinats.width = layout.width;
+  coordinats.width = layout.width + SIDEBAR_WIDTH;
   coordinats.height = layout.height;
   // высчитываем углы изометрической клетки
   const partHorizont = layout.horizontal / 2;
@@ -91,7 +96,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
 
   // чтобы полностью заполнить контейнер надо его длину увеличить до тех пор пока видимая область не будет внутри треугольника
   // если верхнее ребро рабочей область больше бокового
-  let width = layout.width;
+  let width = layout.width + SIDEBAR_WIDTH;
   let height = layout.height;
   let widthMax = width * Math.tan(radBetta);
   let heightMax = height * Math.tan(radAlpha);
@@ -99,7 +104,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
   width = height = widthMax >= heightMax ? widthMax * 2 : heightMax * 2;
 
   const numberCellsHorizont: number = Math.ceil(
-    layout.width / layout.horizontal,
+    (layout.width + SIDEBAR_WIDTH) / layout.horizontal,
   );
   const numberCellsVertical: number = Math.ceil(
     layout.height / (layout.vertical / 2),
@@ -116,26 +121,30 @@ export const updateLayout = (layout: ILayoutSettings): void => {
         const X = layout.height * Math.tan(radAlpha);
 
         const fromX =
-          x < numberCellsHorizont ? x * layout.horizontal : layout.width;
+          x < numberCellsHorizont
+            ? x * layout.horizontal
+            : layout.width + SIDEBAR_WIDTH;
         const fromY =
           x < numberCellsHorizont
             ? 0
-            : (x * layout.horizontal - layout.width) * Math.tan(radBetta);
+            : (x * layout.horizontal - layout.width + SIDEBAR_WIDTH) *
+              Math.tan(radBetta);
 
         const lineToX =
-          X + x * layout.horizontal >= layout.width
-            ? layout.width
+          X + x * layout.horizontal >= layout.width + SIDEBAR_WIDTH
+            ? layout.width + SIDEBAR_WIDTH
             : X + x * layout.horizontal;
 
         const lineToY =
-          X + x * layout.horizontal >= layout.width
-            ? (layout.width - layout.horizontal * x) * Math.tan(radBetta)
+          X + x * layout.horizontal >= layout.width + SIDEBAR_WIDTH
+            ? (layout.width + SIDEBAR_WIDTH - layout.horizontal * x) *
+              Math.tan(radBetta)
             : layout.height;
 
         if (
-          lineToX <= layout.width &&
+          lineToX <= layout.width + SIDEBAR_WIDTH &&
           lineToY <= layout.height &&
-          fromX <= layout.width &&
+          fromX <= layout.width + SIDEBAR_WIDTH &&
           fromY <= layout.height
         ) {
           mesh.beginPath();
@@ -150,18 +159,21 @@ export const updateLayout = (layout: ILayoutSettings): void => {
         }
 
         const Y = x * layout.horizontal * Math.tan(radBetta);
-        const XOffset = layout.width - x * layout.horizontal;
+        const XOffset = layout.width + SIDEBAR_WIDTH - x * layout.horizontal;
 
         const overLineToX =
           Y > layout.height
-            ? layout.width - layout.height * Math.tan(radAlpha) - XOffset
+            ? layout.width +
+              SIDEBAR_WIDTH -
+              layout.height * Math.tan(radAlpha) -
+              XOffset
             : 0;
         const overLineToY = Y > layout.height ? layout.height : Y;
 
         if (
-          overLineToX <= layout.width &&
+          overLineToX <= layout.width + SIDEBAR_WIDTH &&
           overLineToY <= layout.height &&
-          fromX <= layout.width &&
+          fromX <= layout.width + SIDEBAR_WIDTH &&
           fromY <= layout.height
         ) {
           mesh.beginPath();
@@ -183,11 +195,12 @@ export const updateLayout = (layout: ILayoutSettings): void => {
           Math.tan(radAlpha);
 
         // линия сетки от левого ребра плоскости
-        const lineToX = X >= layout.width ? layout.width : X;
+        const lineToX =
+          X >= layout.width + SIDEBAR_WIDTH ? layout.width + SIDEBAR_WIDTH : X;
         const lineToY =
-          X >= layout.width
+          X >= layout.width + SIDEBAR_WIDTH
             ? x * layout.vertical +
-              layout.width * Math.tan(radBetta) +
+              (layout.width + SIDEBAR_WIDTH) * Math.tan(radBetta) +
               layout.vertical
             : layout.height;
 
@@ -217,7 +230,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
       for (let x = 0; x < numberCellsVertical; x++) {
         mesh.beginPath();
         mesh.moveTo(0, x * layout.vertical);
-        mesh.lineTo(layout.width, x * layout.vertical);
+        mesh.lineTo(layout.width + SIDEBAR_WIDTH, x * layout.vertical);
         mesh.stroke({
           width: layout.meshWidth,
           color: hexToPixiColor(layout.meshColor),
@@ -246,7 +259,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
       // X
       oses.beginPath();
       oses.moveTo(0, middleY);
-      oses.lineTo(layout.width, middleY);
+      oses.lineTo(layout.width + SIDEBAR_WIDTH, middleY);
       oses.stroke({
         width: layout.osWidth,
         color: hexToPixiColor(layout.osColor),
@@ -260,16 +273,17 @@ export const updateLayout = (layout: ILayoutSettings): void => {
 
   if (layout.showText) {
     if (layout.type === 'default') {
-      const realNumberCellsHorizont = Math.ceil(
+      const realNumberCellsVertical = Math.ceil(
         layout.height / layout.vertical,
       );
       const partHorizont = -Math.ceil(numberCellsHorizont / 2);
-      const partVertical = -Math.round(realNumberCellsHorizont / 2);
+      const partVertical = Math.ceil(realNumberCellsVertical / 2);
 
       let indexX = 0;
       let indexY = 0;
       for (let x = 0; x < numberCellsHorizont; x++) {
-        for (let y = 0; y < realNumberCellsHorizont; y++) {
+        indexY = 0;
+        for (let y = 0; y < realNumberCellsVertical; y++) {
           const style: PIXI.TextStyle = new PIXI.TextStyle({
             fontFamily: 'Montserrat',
             fontSize: layout.textSize,
@@ -277,10 +291,10 @@ export const updateLayout = (layout: ILayoutSettings): void => {
           });
 
           indexX = partHorizont + x === 0 ? 1 : indexX;
-          indexY = partVertical + y === 0 ? 1 : indexY;
+          indexY = partVertical - y === 0 ? 1 : indexY;
 
           const contentX = partHorizont + x + indexX;
-          const contentY = partVertical + y + indexY;
+          const contentY = partVertical - y - indexY;
 
           const text: PIXI.Text = new PIXI.Text({
             text: `${contentX}:${contentY}`,

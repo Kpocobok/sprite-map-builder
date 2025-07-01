@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { hexToRgba } from '../../../helpers/utils';
+import { SIDEBAR_WIDTH } from '../../../constants/default';
 
 export const Container = styled.div`
   position: absolute;
@@ -7,7 +7,7 @@ export const Container = styled.div`
   right: 0;
   bottom: 0;
   height: 100%;
-  width: 400px;
+  width: ${SIDEBAR_WIDTH}px;
   padding: 8px;
 `;
 
