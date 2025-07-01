@@ -1,17 +1,20 @@
 import * as PIXI from 'pixi.js';
-import type { ILayoutSettings } from '../interfaces/store';
-import {
-  DEFAULT_MESH_ID,
-  DEFAULT_BG_ID,
-  DEFAULT_LAYERS_ID,
-  DEFAULT_TOPSTAGE_ID,
-  SIDEBAR_WIDTH,
-} from '../constants/default';
-import { hexToPixiColor } from './utils';
+import type {ILayoutSettings} from '../interfaces/store';
+import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, SIDEBAR_WIDTH} from '../constants/default';
+import {hexToPixiColor} from './utils';
 
 export interface ICoordinats {
-  x: number;
-  y: number;
+    x: number;
+    y: number;
+}
+
+export interface ICoordinatsISOMesh {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    endSX?: number;
+    endSY?: number;
 }
 
 /**
@@ -20,20 +23,16 @@ export interface ICoordinats {
  * @param container контейнер для регистрации
  * @returns void
  */
-export const registerContainer = (
-  id: string,
-  container: PIXI.Container,
-): void => {
-  if (!window.ApiCanvasPixiContainerRegister) return;
+export const registerContainer = (id: string, container: PIXI.Container): void => {
+    if (!window.ApiCanvasPixiContainerRegister) return;
 
-  const isset: PIXI.Container | undefined =
-    window.ApiCanvasPixiContainerRegister.get(id);
+    const isset: PIXI.Container | undefined = window.ApiCanvasPixiContainerRegister.get(id);
 
-  if (isset) return;
+    if (isset) return;
 
-  window.ApiCanvasPixiContainerRegister.set(id, container);
+    window.ApiCanvasPixiContainerRegister.set(id, container);
 
-  return;
+    return;
 };
 
 /**
@@ -41,28 +40,114 @@ export const registerContainer = (
  * @returns void
  */
 export const createDefaultContainers = (): void => {
-  if (!window.ApiCanvasPixi) return;
+    if (!window.ApiCanvasPixi) return;
 
-  const meshContainer: PIXI.Container = new PIXI.Container();
-  meshContainer.x = -SIDEBAR_WIDTH;
-  const backgroundContainer: PIXI.Container = new PIXI.Container();
-  backgroundContainer.x = -SIDEBAR_WIDTH;
-  const layersContainer: PIXI.Container = new PIXI.Container();
-  layersContainer.x = -SIDEBAR_WIDTH;
-  const topStage: PIXI.Container = new PIXI.Container();
-  topStage.x = -SIDEBAR_WIDTH;
+    const meshContainer: PIXI.Container = new PIXI.Container();
+    meshContainer.x = -SIDEBAR_WIDTH;
+    const backgroundContainer: PIXI.Container = new PIXI.Container();
+    backgroundContainer.x = -SIDEBAR_WIDTH;
+    const layersContainer: PIXI.Container = new PIXI.Container();
+    layersContainer.x = -SIDEBAR_WIDTH;
+    const topStage: PIXI.Container = new PIXI.Container();
+    topStage.x = -SIDEBAR_WIDTH;
 
-  window.ApiCanvasPixi.stage.addChild(backgroundContainer);
-  window.ApiCanvasPixi.stage.addChild(meshContainer);
-  window.ApiCanvasPixi.stage.addChild(layersContainer);
-  window.ApiCanvasPixi.stage.addChild(topStage);
+    window.ApiCanvasPixi.stage.addChild(backgroundContainer);
+    window.ApiCanvasPixi.stage.addChild(meshContainer);
+    window.ApiCanvasPixi.stage.addChild(layersContainer);
+    window.ApiCanvasPixi.stage.addChild(topStage);
 
-  registerContainer(DEFAULT_MESH_ID, backgroundContainer);
-  registerContainer(DEFAULT_BG_ID, meshContainer);
-  registerContainer(DEFAULT_LAYERS_ID, layersContainer);
-  registerContainer(DEFAULT_TOPSTAGE_ID, topStage);
+    registerContainer(DEFAULT_MESH_ID, backgroundContainer);
+    registerContainer(DEFAULT_BG_ID, meshContainer);
+    registerContainer(DEFAULT_LAYERS_ID, layersContainer);
+    registerContainer(DEFAULT_TOPSTAGE_ID, topStage);
 
-  return;
+    return;
+};
+
+/**
+ * Получаем углы изометрической клетки
+ * @param layout ILayoutSettings
+ * @returns
+ */
+export const getRadians = (layout: ILayoutSettings) => {
+    const horizontal = layout.horizontal / 2;
+    const vertical = layout.vertical / 2;
+    const alpha = Math.atan(horizontal / vertical);
+    const betta = (90 - alpha * (180 / Math.PI)) * (Math.PI / 180);
+    return {alpha, betta};
+};
+
+export const getCoordinatsDefaultMeshLines = (layout: ILayoutSettings) => {
+    const osX: ICoordinatsISOMesh[] = [];
+    const osY: ICoordinatsISOMesh[] = [];
+    // реальная высота и ширина плоскости
+    const width: number = layout.width + SIDEBAR_WIDTH;
+    const height: number = layout.height;
+    // получаем шаги начальных точек по горизонтале в рамках удлиненного горизонтального ребра
+    const stepsX: number = Math.ceil(width / layout.horizontal);
+    const stepsY: number = Math.ceil(height / layout.vertical);
+    // начинаем сбор начальных и конечных точек для изометричесокй плоскости
+    for (let x = 0; x < stepsX; x++) {
+        const startX = x * layout.horizontal;
+        const startY = 0;
+        const endX = x * layout.horizontal;
+        const endY = height;
+        // добавляем в массив
+        osX.push({startX, startY, endX, endY});
+    }
+    // получаем координаты для вертикальной оси
+    for (let x = 0; x < stepsY; x++) {
+        const startX = 0;
+        const startY = x * layout.vertical;
+        const endX = width;
+        const endY = x * layout.vertical;
+        // добавляем в массив
+        osY.push({startX, startY, endX, endY});
+    }
+    // возращаем два массива с координатами начальных и конечных точек линий обычной сетки
+    return {osX, osY};
+};
+
+export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
+    const osX: ICoordinatsISOMesh[] = [];
+    const osY: ICoordinatsISOMesh[] = [];
+    // получаем основные углы изометрической клетки
+    const {alpha, betta} = getRadians(layout);
+    // реальная высота и ширина плоскости
+    const width: number = layout.width + SIDEBAR_WIDTH;
+    const height: number = layout.height;
+    // получаем удлененное ребро по горизонтале, так чтобы плоскость оказалось внутри виртуального треугольника
+    const fullWidth = width + height * Math.tan(betta);
+    // получаем шаги начальных точек по горизонтале в рамках удлиненного горизонтального ребра
+    const stepsX: number = Math.ceil(fullWidth / layout.horizontal);
+    const stepsY: number = Math.ceil(height / layout.vertical);
+    // начинаем сбор начальных и конечных точек для изометричесокй плоскости
+    for (let x = 0; x < stepsX; x++) {
+        // начальная точка /
+        const startX = x * layout.horizontal >= width ? width : x * layout.horizontal;
+        const startY = x * layout.horizontal >= width ? (width - x * layout.horizontal) * Math.tan(betta) : 0;
+        // конечная точка /
+        const endY = x * layout.horizontal * Math.tan(betta) >= height ? height : x * layout.horizontal * Math.tan(betta);
+        const endX = x * layout.horizontal * Math.tan(betta) >= height ? (x * layout.horizontal * Math.tan(betta) - height) * Math.tan(alpha) : 0;
+        // конечная точка \
+        const endSX = x * layout.horizontal + height * Math.tan(alpha) >= width ? width : x * layout.horizontal + height * Math.tan(alpha);
+        const endSY = x * layout.horizontal + height * Math.tan(alpha) >= width ? width - (layout.horizontal + height * Math.tan(alpha)) * Math.tan(betta) : height;
+        // добавляем в массив
+        osX.push({startX, startY, endX, endY, endSX, endSY});
+    }
+    // получаем координаты для вертикальной оси
+    for (let x = 0; x < stepsY; x++) {
+        // начальная точка \
+        const startX = 0;
+        const startY = x * layout.vertical;
+        // конечная точка \
+        const endX = (height - x * layout.vertical) * Math.tan(alpha) >= width ? width : (height - x * layout.vertical) * Math.tan(alpha);
+        const endY = (height - x * layout.vertical) * Math.tan(alpha) >= width ? (width - (height - x * layout.vertical) * Math.tan(alpha)) * Math.tan(alpha) : height;
+        // добавляем в массив
+        osY.push({startX, startY, endX, endY});
+    }
+    // возращаем два массива с координатами начальных и конечных точек линий изометрической сетки
+    return {osX, osY};
 };
 
 /**
@@ -71,253 +156,117 @@ export const createDefaultContainers = (): void => {
  * @returns void
  */
 export const updateLayout = (layout: ILayoutSettings): void => {
-  if (!window.ApiCanvasPixi || !window.ApiCanvasPixiContainerRegister) return;
+    if (!window.ApiCanvasPixi || !window.ApiCanvasPixiContainerRegister) return;
 
-  window.ApiCanvasPixi.screen.width = layout.width + SIDEBAR_WIDTH;
-  window.ApiCanvasPixi.screen.height = layout.height;
+    // учитываем сайдбарк
+    const realWidth: number = layout.width + SIDEBAR_WIDTH;
+    const realHeight: number = layout.height;
 
-  const meshContainer: PIXI.Container =
-    window.ApiCanvasPixiContainerRegister.get(
-      DEFAULT_MESH_ID,
-    ) as PIXI.Container;
+    window.ApiCanvasPixi.screen.width = realWidth;
+    window.ApiCanvasPixi.screen.height = realHeight;
 
-  meshContainer.children = [];
+    const meshContainer: PIXI.Container = window.ApiCanvasPixiContainerRegister.get(DEFAULT_MESH_ID) as PIXI.Container;
 
-  const mesh: PIXI.Graphics = new PIXI.Graphics();
-  const coordinats: PIXI.Container = new PIXI.Container();
-  const oses: PIXI.Graphics = new PIXI.Graphics();
-  coordinats.width = layout.width + SIDEBAR_WIDTH;
-  coordinats.height = layout.height;
-  // высчитываем углы изометрической клетки
-  const partHorizont = layout.horizontal / 2;
-  const partVertical = layout.vertical / 2;
-  const radAlpha = Math.atan(partHorizont / partVertical);
-  const radBetta = (90 - radAlpha * (180 / Math.PI)) * (Math.PI / 180);
+    meshContainer.children = [];
 
-  // чтобы полностью заполнить контейнер надо его длину увеличить до тех пор пока видимая область не будет внутри треугольника
-  // если верхнее ребро рабочей область больше бокового
-  let width = layout.width + SIDEBAR_WIDTH;
-  let height = layout.height;
-  let widthMax = width * Math.tan(radBetta);
-  let heightMax = height * Math.tan(radAlpha);
-  // приведем все к равнобедренном прямоугольному треугольнику, где плоскость будет внутри этого треугольника
-  width = height = widthMax >= heightMax ? widthMax * 2 : heightMax * 2;
+    const mesh: PIXI.Graphics = new PIXI.Graphics();
+    const coordinats: PIXI.Container = new PIXI.Container();
+    const oses: PIXI.Graphics = new PIXI.Graphics();
 
-  const numberCellsHorizont: number = Math.ceil(
-    (layout.width + SIDEBAR_WIDTH) / layout.horizontal,
-  );
-  const numberCellsVertical: number = Math.ceil(
-    layout.height / (layout.vertical / 2),
-  );
-  const numberFullCellsHorizon: number = Math.ceil(width / layout.horizontal);
-  const numberFullCellsVertical: number = Math.ceil(
-    height / (layout.vertical / 2),
-  );
-
-  if (layout.showMesh) {
-    if (layout.type === 'isometric') {
-      for (let x = 0; x < numberFullCellsHorizon; x++) {
-        // находим точку X конечную из точки XY:00
-        const X = layout.height * Math.tan(radAlpha);
-
-        const fromX =
-          x < numberCellsHorizont
-            ? x * layout.horizontal
-            : layout.width + SIDEBAR_WIDTH;
-        const fromY =
-          x < numberCellsHorizont
-            ? 0
-            : (x * layout.horizontal - layout.width + SIDEBAR_WIDTH) *
-              Math.tan(radBetta);
-
-        const lineToX =
-          X + x * layout.horizontal >= layout.width + SIDEBAR_WIDTH
-            ? layout.width + SIDEBAR_WIDTH
-            : X + x * layout.horizontal;
-
-        const lineToY =
-          X + x * layout.horizontal >= layout.width + SIDEBAR_WIDTH
-            ? (layout.width + SIDEBAR_WIDTH - layout.horizontal * x) *
-              Math.tan(radBetta)
-            : layout.height;
-
-        if (
-          lineToX <= layout.width + SIDEBAR_WIDTH &&
-          lineToY <= layout.height &&
-          fromX <= layout.width + SIDEBAR_WIDTH &&
-          fromY <= layout.height
-        ) {
-          mesh.beginPath();
-          mesh.moveTo(fromX, fromY);
-          // чертим линию сетки
-          mesh.lineTo(lineToX, lineToY);
-          mesh.stroke({
-            width: layout.meshWidth,
-            color: hexToPixiColor(layout.meshColor),
-          });
-          mesh.closePath();
+    if (layout.showMesh) {
+        // находим полную длину верхнего ребра плоскости для отрисовки линий изометрии
+        const {osX, osY} = layout.type === 'isometric' ? getCoordinatsIsometricMeshLines(layout) : getCoordinatsDefaultMeshLines(layout);
+        // начинаем отрисовку линий на правую сторону
+        for (const os of [osX, osY]) {
+            for (const point of os) {
+                mesh.beginPath();
+                mesh.moveTo(point.startX, point.startY);
+                mesh.lineTo(point.endX, point.endY);
+                if (point.endSX !== undefined && point.endSY !== undefined) {
+                    mesh.moveTo(point.startX, point.startY);
+                    mesh.lineTo(point.endSX, point.endSY);
+                }
+                mesh.stroke({
+                    width: layout.meshWidth,
+                    color: hexToPixiColor(layout.meshColor)
+                });
+                mesh.closePath();
+            }
         }
+    }
 
-        const Y = x * layout.horizontal * Math.tan(radBetta);
-        const XOffset = layout.width + SIDEBAR_WIDTH - x * layout.horizontal;
+    // if (layout.showOs) {
+    //     if (layout.type === 'default') {
+    //         const middleX = Math.ceil(numberCellsHorizont / 2) * layout.horizontal;
+    //         const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
+    //         // Y
+    //         oses.beginPath();
+    //         oses.moveTo(middleX, 0);
+    //         oses.lineTo(middleX, layout.height);
+    //         oses.stroke({
+    //             width: layout.osWidth,
+    //             color: hexToPixiColor(layout.osColor)
+    //         });
+    //         oses.closePath();
+    //         // X
+    //         oses.beginPath();
+    //         oses.moveTo(0, middleY);
+    //         oses.lineTo(layout.width + SIDEBAR_WIDTH, middleY);
+    //         oses.stroke({
+    //             width: layout.osWidth,
+    //             color: hexToPixiColor(layout.osColor)
+    //         });
+    //         oses.closePath();
+    //         // рисуем оси для изометрии
+    //     } else if (layout.type === 'isometric') {
+    //         // рисуем обычные оси
+    //     } else return;
+    // }
 
-        const overLineToX =
-          Y > layout.height
-            ? layout.width +
-              SIDEBAR_WIDTH -
-              layout.height * Math.tan(radAlpha) -
-              XOffset
-            : 0;
-        const overLineToY = Y > layout.height ? layout.height : Y;
+    // if (layout.showText) {
+    //     if (layout.type === 'default') {
+    //         const realNumberCellsVertical = Math.ceil(layout.height / layout.vertical);
+    //         const partHorizont = -Math.ceil(numberCellsHorizont / 2);
+    //         const partVertical = Math.ceil(realNumberCellsVertical / 2);
 
-        if (
-          overLineToX <= layout.width + SIDEBAR_WIDTH &&
-          overLineToY <= layout.height &&
-          fromX <= layout.width + SIDEBAR_WIDTH &&
-          fromY <= layout.height
-        ) {
-          mesh.beginPath();
-          mesh.moveTo(fromX, fromY);
-          // чертим линию сетки
-          mesh.lineTo(overLineToX, overLineToY);
-          mesh.stroke({
-            width: layout.meshWidth,
-            color: hexToPixiColor(layout.meshColor),
-          });
-          mesh.closePath();
-        }
-      }
+    //         let indexX = 0;
+    //         let indexY = 0;
+    //         for (let x = 0; x < numberCellsHorizont; x++) {
+    //             indexY = 0;
+    //             for (let y = 0; y < realNumberCellsVertical; y++) {
+    //                 const style: PIXI.TextStyle = new PIXI.TextStyle({
+    //                     fontFamily: 'Montserrat',
+    //                     fontSize: layout.textSize,
+    //                     fill: layout.textColor
+    //                 });
 
-      for (let x = 0; x <= numberFullCellsVertical; x++) {
-        // находим точку X конечную из точки XY:00
-        const X =
-          (layout.height - layout.vertical * x - layout.vertical) *
-          Math.tan(radAlpha);
+    //                 indexX = partHorizont + x === 0 ? 1 : indexX;
+    //                 indexY = partVertical - y === 0 ? 1 : indexY;
 
-        // линия сетки от левого ребра плоскости
-        const lineToX =
-          X >= layout.width + SIDEBAR_WIDTH ? layout.width + SIDEBAR_WIDTH : X;
-        const lineToY =
-          X >= layout.width + SIDEBAR_WIDTH
-            ? x * layout.vertical +
-              (layout.width + SIDEBAR_WIDTH) * Math.tan(radBetta) +
-              layout.vertical
-            : layout.height;
+    //                 const contentX = partHorizont + x + indexX;
+    //                 const contentY = partVertical - y - indexY;
 
-        mesh.beginPath();
-        // стартовая точка с учетом сдвига изометрической ячейки на половины высоты ячейки
-        mesh.moveTo(0, layout.vertical + x * layout.vertical);
-        mesh.lineTo(lineToX, lineToY);
-        mesh.stroke({
-          width: layout.meshWidth,
-          color: hexToPixiColor(layout.meshColor),
-        });
-        mesh.closePath();
-      }
-    } else if (layout.type === 'default') {
-      for (let x = 0; x < numberCellsHorizont; x++) {
-        mesh.beginPath();
-        mesh.moveTo(x * layout.horizontal, 0);
-        mesh.lineTo(x * layout.horizontal, layout.height);
-        mesh.stroke({
-          width: layout.meshWidth,
-          color: hexToPixiColor(layout.meshColor),
-        });
-        mesh.closePath();
-        mesh.moveTo(x * layout.horizontal, 0);
-      }
+    //                 const text: PIXI.Text = new PIXI.Text({
+    //                     text: `${contentX}:${contentY}`,
+    //                     style
+    //                 });
 
-      for (let x = 0; x < numberCellsVertical; x++) {
-        mesh.beginPath();
-        mesh.moveTo(0, x * layout.vertical);
-        mesh.lineTo(layout.width + SIDEBAR_WIDTH, x * layout.vertical);
-        mesh.stroke({
-          width: layout.meshWidth,
-          color: hexToPixiColor(layout.meshColor),
-        });
-        mesh.closePath();
-        mesh.moveTo(0, x * layout.vertical);
-      }
-    } else return;
-  }
+    //                 text.x = x * layout.horizontal + layout.horizontal / 2 - text.width / 2;
+    //                 text.y = y * layout.vertical + layout.vertical / 2 - text.height / 2;
 
-  if (layout.showOs) {
-    if (layout.type === 'default') {
-      const middleX = Math.ceil(numberCellsHorizont / 2) * layout.horizontal;
-      const middleY =
-        Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) *
-        layout.vertical;
-      // Y
-      oses.beginPath();
-      oses.moveTo(middleX, 0);
-      oses.lineTo(middleX, layout.height);
-      oses.stroke({
-        width: layout.osWidth,
-        color: hexToPixiColor(layout.osColor),
-      });
-      oses.closePath();
-      // X
-      oses.beginPath();
-      oses.moveTo(0, middleY);
-      oses.lineTo(layout.width + SIDEBAR_WIDTH, middleY);
-      oses.stroke({
-        width: layout.osWidth,
-        color: hexToPixiColor(layout.osColor),
-      });
-      oses.closePath();
-      // рисуем оси для изометрии
-    } else if (layout.type === 'isometric') {
-      // рисуем обычные оси
-    } else return;
-  }
+    //                 coordinats.addChild(text);
+    //             }
+    //         }
+    //     } else if (layout.type === 'isometric') {
+    //         // выставляем данные о ячейках
+    //     } else return;
+    // }
 
-  if (layout.showText) {
-    if (layout.type === 'default') {
-      const realNumberCellsVertical = Math.ceil(
-        layout.height / layout.vertical,
-      );
-      const partHorizont = -Math.ceil(numberCellsHorizont / 2);
-      const partVertical = Math.ceil(realNumberCellsVertical / 2);
+    meshContainer.addChild(mesh);
+    meshContainer.addChild(coordinats);
+    meshContainer.addChild(oses);
 
-      let indexX = 0;
-      let indexY = 0;
-      for (let x = 0; x < numberCellsHorizont; x++) {
-        indexY = 0;
-        for (let y = 0; y < realNumberCellsVertical; y++) {
-          const style: PIXI.TextStyle = new PIXI.TextStyle({
-            fontFamily: 'Montserrat',
-            fontSize: layout.textSize,
-            fill: layout.textColor,
-          });
-
-          indexX = partHorizont + x === 0 ? 1 : indexX;
-          indexY = partVertical - y === 0 ? 1 : indexY;
-
-          const contentX = partHorizont + x + indexX;
-          const contentY = partVertical - y - indexY;
-
-          const text: PIXI.Text = new PIXI.Text({
-            text: `${contentX}:${contentY}`,
-            style,
-          });
-
-          text.x =
-            x * layout.horizontal + layout.horizontal / 2 - text.width / 2;
-          text.y = y * layout.vertical + layout.vertical / 2 - text.height / 2;
-
-          coordinats.addChild(text);
-        }
-      }
-    } else if (layout.type === 'isometric') {
-      // выставляем данные о ячейках
-    } else return;
-  }
-
-  meshContainer.addChild(mesh);
-  meshContainer.addChild(coordinats);
-  meshContainer.addChild(oses);
-
-  return;
+    return;
 };
 
 /**
@@ -327,13 +276,9 @@ export const updateLayout = (layout: ILayoutSettings): void => {
  * @param layout ILayoutSettings
  * @returns ICoordinats (изометрические координаты)
  */
-export const convertCoordsFromNativeToISO = (
-  x: number,
-  y: number,
-  layout: ILayoutSettings,
-): ICoordinats => {
-  return {
-    x: (x - y) * (layout.horizontal / 2),
-    y: (x + y) * (layout.vertical / 2),
-  };
+export const convertCoordsFromNativeToISO = (x: number, y: number, layout: ILayoutSettings): ICoordinats => {
+    return {
+        x: (x - y) * (layout.horizontal / 2),
+        y: (x + y) * (layout.vertical / 2)
+    };
 };

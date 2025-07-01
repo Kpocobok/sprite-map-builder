@@ -18,7 +18,7 @@ const SpriteEditor = (): ReactNode => {
   return (
     <Container>
       <PixiCanvas />
-      <SideBar />
+      {/* <SideBar /> */}
     </Container>
   );
 };
