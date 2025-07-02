@@ -77,6 +77,11 @@ export const getRadians = (layout: ILayoutSettings) => {
     return {alpha, betta};
 };
 
+/**
+ * Координаты начальных и конечных точек для обычной сетки
+ * @param layout ILayoutSettings
+ * @returns
+ */
 export const getCoordinatsDefaultMeshLines = (layout: ILayoutSettings) => {
     const osX: ICoordinatsISOMesh[] = [];
     const osY: ICoordinatsISOMesh[] = [];
@@ -108,6 +113,11 @@ export const getCoordinatsDefaultMeshLines = (layout: ILayoutSettings) => {
     return {osX, osY};
 };
 
+/**
+ * Координаты начальных и конечных точек для изометрической сетки
+ * @param layout ILayoutSettings
+ * @returns
+ */
 export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings) => {
     const osX: ICoordinatsISOMesh[] = [];
     const osY: ICoordinatsISOMesh[] = [];
@@ -189,9 +199,9 @@ export const updateLayout = (layout: ILayoutSettings): void => {
     }
 
     if (layout.showOs) {
+        const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
+        const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
         if (layout.type === 'default') {
-            const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
-            const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
             // Y
             oses.beginPath();
             oses.moveTo(middleX, 0);
@@ -212,7 +222,36 @@ export const updateLayout = (layout: ILayoutSettings): void => {
             oses.closePath();
             // рисуем оси для изометрии
         } else if (layout.type === 'isometric') {
-            // рисуем обычные оси
+            // получаем основные углы изометрической клетки
+            const {alpha, betta} = getRadians(layout);
+            // ось \
+            const startOSxY = middleX * Math.tan(betta) >= middleY ? middleY - middleX * Math.tan(betta) : 0;
+            const startOSxX = middleX * Math.tan(betta) >= middleY ? 0 : (middleY - middleX * Math.tan(betta)) * Math.tan(betta);
+            const endOSxY = middleX * Math.tan(betta) >= middleY ? middleY * 2 : middleY + middleX * Math.tan(betta);
+            const endOSxX = middleX * Math.tan(betta) >= middleY ? middleX * 2 - (middleX * Math.tan(betta) - middleY) * Math.tan(alpha) : middleX * 2;
+            // ось /
+            const startOSyY = middleX * Math.tan(betta) >= middleY ? middleY - middleX * Math.tan(betta) : 0;
+            const startOSyX = middleX * Math.tan(betta) >= middleY ? middleX * 2 : middleX * 2 - (middleY - middleX * Math.tan(betta)) * Math.tan(betta);
+            const endOSyY = middleX * Math.tan(betta) >= middleY ? middleY * 2 : middleY + middleX * Math.tan(betta);
+            const endOSyX = middleX * Math.tan(betta) >= middleY ? (middleX * Math.tan(betta) - middleY) * Math.tan(alpha) : 0;
+            // X
+            oses.beginPath();
+            oses.moveTo(startOSxX, startOSxY);
+            oses.lineTo(endOSxX, endOSxY);
+            oses.stroke({
+                width: layout.osWidth,
+                color: hexToPixiColor(layout.osColor)
+            });
+            oses.closePath();
+            // Y
+            oses.beginPath();
+            oses.moveTo(startOSyX, startOSyY);
+            oses.lineTo(endOSyX, endOSyY);
+            oses.stroke({
+                width: layout.osWidth,
+                color: hexToPixiColor(layout.osColor)
+            });
+            oses.closePath();
         } else return;
     }
 
