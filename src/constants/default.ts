@@ -17,8 +17,8 @@ export const DEFAULT_MESH_TYPES: MESH_TYPES[] = ['default', 'isometric'];
 
 export const DEFAULT_LAYOUT: ILayoutSettings = {
     type: DEFAULT_MESH_TYPES[1],
-    horizontal: 64,
-    vertical: 32,
+    horizontal: 128,
+    vertical: 64,
     meshColor: '#E0E0E0',
     meshWidth: 1,
     osColor: '#ff0000',

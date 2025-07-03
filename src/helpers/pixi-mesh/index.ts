@@ -27,6 +27,15 @@ export interface ICorners {
     betta: number;
 }
 
+export interface IMiddle {
+    middleX: number;
+    middleY: number;
+}
+
+export interface Text extends ICoordinats {
+    text: string;
+}
+
 /**
  * Получаем углы изометрической клетки
  * @param layout ILayoutSettings
@@ -38,6 +47,18 @@ export const getRadians = (layout: ILayoutSettings): ICorners => {
     const alpha = Math.atan(horizontal / vertical);
     const betta = (90 - alpha * (180 / Math.PI)) * (Math.PI / 180);
     return {alpha, betta};
+};
+
+/**
+ * Поиск реальных координат центральной ячейки
+ * @param layout ILayoutSettings
+ * @returns IMiddle
+ */
+export const getMiddle = (layout: ILayoutSettings): IMiddle => {
+    const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
+    const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
+
+    return {middleX, middleY};
 };
 
 /**
@@ -115,7 +136,7 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings): IOses 
         const startY = x * layout.vertical;
         // конечная точка \
         const endX = (height - x * layout.vertical) * Math.tan(alpha) >= width ? width : (height - x * layout.vertical) * Math.tan(alpha);
-        const endY = (height - x * layout.vertical) * Math.tan(alpha) >= width ? ((height - x * layout.vertical) * Math.tan(alpha) - width) * Math.tan(alpha) : height;
+        const endY = (height - x * layout.vertical) * Math.tan(alpha) >= width ? height - ((height - x * layout.vertical) * Math.tan(alpha) - width) * Math.tan(betta) : height;
         // добавляем в массив
         osY.push({startX, startY, endX, endY});
     }
@@ -129,8 +150,7 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings): IOses 
  * @returns ICoordinatsMesh[]
  */
 export const getCoordinatsDefaultOses = (layout: ILayoutSettings): ICoordinatsMesh[] => {
-    const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
-    const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
+    const {middleX, middleY} = getMiddle(layout);
 
     return [
         {
@@ -155,24 +175,29 @@ export const getCoordinatsDefaultOses = (layout: ILayoutSettings): ICoordinatsMe
  */
 export const getCoordinatsIsometricOses = (layout: ILayoutSettings): ICoordinatsMesh[] => {
     const {alpha, betta} = getRadians(layout);
+    const {middleX, middleY} = getMiddle(layout);
 
-    const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
-    const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
+    const condition = middleX * Math.tan(betta);
+    const overline = (condition - middleY) * Math.tan(alpha);
+    const width = middleX * 2;
+    const height = middleY * 2;
 
-    const endY = middleX * Math.tan(betta) >= middleY ? middleY * 2 : middleY + middleX * Math.tan(betta);
-    const startY = middleX * Math.tan(betta) >= middleY ? middleY - middleX * Math.tan(betta) : 0;
+    const startY = condition >= middleY ? 0 : middleY - condition;
+    const endY = condition >= middleY ? height : middleY + condition;
+    const StartXEndX = condition >= middleY ? overline : 0;
+
     const defaults = {startY, endY};
 
     return [
         {
             ...defaults,
-            startX: middleX * Math.tan(betta) >= middleY ? 0 : (middleY - middleX * Math.tan(betta)) * Math.tan(betta),
-            endX: middleX * Math.tan(betta) >= middleY ? middleX * 2 - (middleX * Math.tan(betta) - middleY) * Math.tan(alpha) : middleX * 2
+            startX: StartXEndX,
+            endX: condition >= middleY ? middleX + (middleX - overline) : width
         },
         {
             ...defaults,
-            startX: middleX * Math.tan(betta) >= middleY ? middleX * 2 : middleX * 2 - (middleY - middleX * Math.tan(betta)) * Math.tan(betta),
-            endX: middleX * Math.tan(betta) >= middleY ? (middleX * Math.tan(betta) - middleY) * Math.tan(alpha) : 0
+            endX: StartXEndX,
+            startX: condition >= middleY ? width - overline : width
         }
     ];
 };
@@ -208,6 +233,19 @@ export const drawMeshes = (poiters: ICoordinatsMesh[], container: PIXI.Graphics,
  * @returns void
  */
 export const drawCoordinats = (container: PIXI.Container, layout: ILayoutSettings): void => {
+    const arr: Text[] = layout.type === 'default' ? drawDefaultCoordinats(layout.width, layout.height, layout.horizontal, layout.vertical) : drawIsometricCoordinats(layout.width, layout.height, layout.horizontal, layout.vertical);
+
+    addCoordinats(container, layout, arr);
+};
+
+/**
+ * Отрисовка текста координат
+ * @param container PIXI.Container
+ * @param layout ILayoutSettings
+ * @param texts Text[]
+ * @return void
+ */
+const addCoordinats = (container: PIXI.Container, layout: ILayoutSettings, texts: Text[]): void => {
     // стиль текста для координат
     const style: PIXI.TextStyle = new PIXI.TextStyle({
         fontFamily: 'Montserrat',
@@ -215,11 +253,18 @@ export const drawCoordinats = (container: PIXI.Container, layout: ILayoutSetting
         fill: layout.textColor
     });
 
-    if (layout.type === 'default') {
-        drawDefaultCoordinats(container, layout.width, layout.height, layout.horizontal, layout.vertical, style);
-    } else if (layout.type === 'isometric') {
-        drawIsometricCoordinats(container, layout.width, layout.height, layout.horizontal, layout.vertical, style);
-    } else return;
+    for (const item of texts) {
+        // Используем BitmapText так как он быстрее работает чем Text
+        const text: PIXI.BitmapText = new PIXI.BitmapText({
+            text: item.text,
+            style
+        });
+
+        text.x = item.x - text.width / 2;
+        text.y = item.y - text.height / 2;
+
+        container.addChild(text);
+    }
 };
 
 /**
@@ -231,10 +276,11 @@ export const drawCoordinats = (container: PIXI.Container, layout: ILayoutSetting
  * @param y number высота обычной ячейки
  * @param style PIXI.TextStyle
  */
-export const drawDefaultCoordinats = (container: PIXI.Container, width: number, height: number, x: number, y: number, style: PIXI.TextStyle): void => {
+export const drawDefaultCoordinats = (width: number, height: number, x: number, y: number): Text[] => {
     const realNumberCellsVertical = Math.ceil(height / y);
     const partHorizont = -Math.ceil((width + SIDEBAR_WIDTH) / x / 2);
     const partVertical = Math.ceil(realNumberCellsVertical / 2);
+    const arr: Text[] = [];
 
     let indexX = 0;
     let indexY = 0;
@@ -247,17 +293,15 @@ export const drawDefaultCoordinats = (container: PIXI.Container, width: number, 
             const contentX = partHorizont + i + indexX;
             const contentY = partVertical - j - indexY;
 
-            const text: PIXI.Text = new PIXI.Text({
+            arr.push({
                 text: `${contentX}:${contentY}`,
-                style
+                x: i * x + x / 2,
+                y: j * y + y / 2
             });
-
-            text.x = i * x + x / 2 - text.width / 2;
-            text.y = j * y + y / 2 - text.height / 2;
-
-            container.addChild(text);
         }
     }
+
+    return arr;
 };
 
 /**
@@ -269,9 +313,10 @@ export const drawDefaultCoordinats = (container: PIXI.Container, width: number, 
  * @param y number высота изометрической ячейки
  * @param style PIXI.TextStyle
  */
-export const drawIsometricCoordinats = (container: PIXI.Container, width: number, height: number, x: number, y: number, style: PIXI.TextStyle): void => {
+export const drawIsometricCoordinats = (width: number, height: number, x: number, y: number): Text[] => {
     const realNumberCellsVertical = Math.ceil(height / y);
     const realNumberCellsHorizont = Math.ceil((width + SIDEBAR_WIDTH) / x);
+    const arr: Text[] = [];
 
     const items = [
         {
@@ -319,26 +364,24 @@ export const drawIsometricCoordinats = (container: PIXI.Container, width: number
     for (const os of items) {
         for (let i = 0; i < realNumberCellsHorizont; i++) {
             for (let j = 0; j < realNumberCellsVertical; j++) {
-                const text: PIXI.Text = new PIXI.Text({
-                    text: `${os.textY}${j + 1}:${os.textX}${i + 1}`,
-                    style
-                });
-
                 const sliceVerticalX = (os.sliceVerticalX * (i * y)) / 2;
                 const sliceVerticalY = (os.sliceVerticalY * (j * y)) / 2;
                 const sliceHorizontX = (os.sliceHorizontX * (i * x)) / 2;
                 const sliceHorizontY = (os.sliceHorizontY * (j * x)) / 2;
 
-                const posX = os.sliceGlobalX + sliceHorizontX + sliceHorizontY - text.width / 2;
-                const posY = os.sliceGlobalY + sliceVerticalY + sliceVerticalX - text.height / 2;
+                const posX = os.sliceGlobalX + sliceHorizontX + sliceHorizontY;
+                const posY = os.sliceGlobalY + sliceVerticalY + sliceVerticalX;
 
                 if (posX > 0 && posX < width + SIDEBAR_WIDTH && posY > 0 && posY < height) {
-                    text.x = posX;
-                    text.y = posY;
+                    arr.push({
+                        text: `${os.textY}${j + 1}:${os.textX}${i + 1}`,
+                        x: posX,
+                        y: posY
+                    });
                 }
-
-                container.addChild(text);
             }
         }
     }
+
+    return arr;
 };
