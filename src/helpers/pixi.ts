@@ -1,9 +1,10 @@
 import * as PIXI from 'pixi.js';
 import type {ILayoutSettings} from '../interfaces/store';
-import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, DEFAULT_MAIN_ID} from '../constants/default';
+import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, DEFAULT_MAIN_ID, DEFAULT_PIXI_APPLICATION_BG} from '../constants/default';
 import {drawMeshes, getCoordinatsIsometricMeshLines, getCoordinatsDefaultMeshLines, getCoordinatsIsometricOses, getCoordinatsDefaultOses, drawCoordinats, drawBGMesh} from './pixi-mesh';
 import {mouseDown, mouseMove, mouseOut, mouseOver, mouseScroll, mouseUp} from './pixi-events';
 import {centerLayout, getCenterLayout} from './pixi-common-methods';
+import {hexToPixiColor} from './utils';
 
 /**
  * Регистрация контейнеров в карте
@@ -35,16 +36,24 @@ export const createDefaultContainers = (): void => {
     const backgroundContainer: PIXI.Container = new PIXI.Container();
     const layersContainer: PIXI.Container = new PIXI.Container();
     const topStage: PIXI.Container = new PIXI.Container();
+    const maskStage: PIXI.Graphics = new PIXI.Graphics();
 
-    window.ApiCanvasPixi.stage.addChild(mainContainer);
+    const {x, y} = getCenterLayout();
 
-    mainContainer.interactive = true;
+    // создаем маску для рендеринга (обрезаем все что не в маске)
+    maskStage.beginPath();
+    maskStage.fill(hexToPixiColor('#ff0000'));
+    maskStage.rect(0, 0, window.ApiCanvasPixi.screen.width, window.ApiCanvasPixi.screen.height);
+    maskStage.closePath();
+    maskStage.visible = false;
+    maskStage.x = x;
+    maskStage.y = y;
+
+    // eventmode для основого контейнера
     mainContainer.eventMode = 'static';
-    meshContainer.interactive = false;
-    backgroundContainer.interactive = false;
-    layersContainer.interactive = false;
-    topStage.interactive = false;
-
+    // включаем интерактив для основного контейнера
+    mainContainer.interactive = true;
+    // события для основного контейнера
     mainContainer.on('pointerover', mouseOver, mainContainer);
     mainContainer.on('pointerout', mouseOut, mainContainer);
     mainContainer.on('pointermove', mouseMove, mainContainer);
@@ -65,6 +74,12 @@ export const createDefaultContainers = (): void => {
     mainContainer.addChild(topStage);
 
     mainContainer.cursor = 'default';
+
+    window.ApiCanvasPixi.stage.addChild(maskStage);
+
+    mainContainer.mask = maskStage;
+
+    window.ApiCanvasPixi.stage.addChild(mainContainer);
 
     registerContainer(DEFAULT_MAIN_ID, mainContainer);
     registerContainer(DEFAULT_MESH_ID, backgroundContainer);
@@ -123,6 +138,7 @@ export const updateLayout = (layout: ILayoutSettings): void => {
     meshContainer.addChild(mesh);
     meshContainer.addChild(coordinats);
     meshContainer.addChild(oses);
+    meshContainer.cacheAsTexture(true);
 
     return;
 };
