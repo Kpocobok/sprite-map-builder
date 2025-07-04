@@ -6,6 +6,7 @@ export const DEFAULT_PIXI_APPLICATION_SIZE: {width: number; height: number} = {
 };
 export const DEFAULT_PIXI_APPLICATION_BG: string = '#f5f5f5';
 
+export const DEFAULT_MAIN_ID: string = 'main';
 export const DEFAULT_MESH_ID: string = 'mesh';
 export const DEFAULT_BG_ID: string = 'bg';
 export const DEFAULT_LAYERS_ID: string = 'layers';
@@ -25,8 +26,8 @@ export const DEFAULT_LAYOUT: ILayoutSettings = {
     osWidth: 1,
     textColor: '#000000',
     textSize: 10,
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 5000,
+    height: 5000,
     showMesh: true,
     showOs: true,
     showText: true

@@ -1,40 +1,9 @@
 import * as PIXI from 'pixi.js';
-import {SIDEBAR_WIDTH} from '../../constants/default';
+import {DEFAULT_PIXI_APPLICATION_BG, SIDEBAR_WIDTH} from '../../constants/default';
 import type {ILayoutSettings} from '../../interfaces/store';
 import {hexToPixiColor} from '../utils';
-
-export interface ICoordinats {
-    x: number;
-    y: number;
-}
-
-export interface ICoordinatsMesh {
-    startX: number;
-    startY: number;
-    endX: number;
-    endY: number;
-    endSX?: number;
-    endSY?: number;
-}
-
-export interface IOses {
-    osX: ICoordinatsMesh[];
-    osY: ICoordinatsMesh[];
-}
-
-export interface ICorners {
-    alpha: number;
-    betta: number;
-}
-
-export interface IMiddle {
-    middleX: number;
-    middleY: number;
-}
-
-export interface Text extends ICoordinats {
-    text: string;
-}
+import type {ICoordinatsMesh, ICorners, IOses, Text} from '../pixi-interface';
+import {getMiddle} from '../pixi-common-methods';
 
 /**
  * Получаем углы изометрической клетки
@@ -47,18 +16,6 @@ export const getRadians = (layout: ILayoutSettings): ICorners => {
     const alpha = Math.atan(horizontal / vertical);
     const betta = (90 - alpha * (180 / Math.PI)) * (Math.PI / 180);
     return {alpha, betta};
-};
-
-/**
- * Поиск реальных координат центральной ячейки
- * @param layout ILayoutSettings
- * @returns IMiddle
- */
-export const getMiddle = (layout: ILayoutSettings): IMiddle => {
-    const middleX = Math.ceil((layout.width + SIDEBAR_WIDTH) / layout.horizontal / 2) * layout.horizontal;
-    const middleY = Math.ceil(Math.ceil(layout.height / layout.vertical) / 2) * layout.vertical;
-
-    return {middleX, middleY};
 };
 
 /**
@@ -150,20 +107,20 @@ export const getCoordinatsIsometricMeshLines = (layout: ILayoutSettings): IOses 
  * @returns ICoordinatsMesh[]
  */
 export const getCoordinatsDefaultOses = (layout: ILayoutSettings): ICoordinatsMesh[] => {
-    const {middleX, middleY} = getMiddle(layout);
+    const {x, y} = getMiddle();
 
     return [
         {
-            startX: middleX,
+            startX: x,
             startY: 0,
-            endX: middleX,
+            endX: x,
             endY: layout.height
         },
         {
             startX: 0,
-            startY: middleY,
+            startY: y,
             endX: layout.width + SIDEBAR_WIDTH,
-            endY: middleY
+            endY: y
         }
     ];
 };
@@ -175,16 +132,16 @@ export const getCoordinatsDefaultOses = (layout: ILayoutSettings): ICoordinatsMe
  */
 export const getCoordinatsIsometricOses = (layout: ILayoutSettings): ICoordinatsMesh[] => {
     const {alpha, betta} = getRadians(layout);
-    const {middleX, middleY} = getMiddle(layout);
+    const {x, y} = getMiddle();
 
-    const condition = middleX * Math.tan(betta);
-    const overline = (condition - middleY) * Math.tan(alpha);
-    const width = middleX * 2;
-    const height = middleY * 2;
+    const condition = x * Math.tan(betta);
+    const overline = (condition - y) * Math.tan(alpha);
+    const width = x * 2;
+    const height = y * 2;
 
-    const startY = condition >= middleY ? 0 : middleY - condition;
-    const endY = condition >= middleY ? height : middleY + condition;
-    const StartXEndX = condition >= middleY ? overline : 0;
+    const startY = condition >= y ? 0 : y - condition;
+    const endY = condition >= y ? height : y + condition;
+    const StartXEndX = condition >= y ? overline : 0;
 
     const defaults = {startY, endY};
 
@@ -192,12 +149,12 @@ export const getCoordinatsIsometricOses = (layout: ILayoutSettings): ICoordinats
         {
             ...defaults,
             startX: StartXEndX,
-            endX: condition >= middleY ? middleX + (middleX - overline) : width
+            endX: condition >= y ? x + (x - overline) : width
         },
         {
             ...defaults,
             endX: StartXEndX,
-            startX: condition >= middleY ? width - overline : width
+            startX: condition >= y ? width - overline : width
         }
     ];
 };
@@ -268,6 +225,23 @@ const addCoordinats = (container: PIXI.Container, layout: ILayoutSettings, texts
 };
 
 /**
+ * Создание фона рабочей области
+ * @param bg PIXI.Graphics
+ * @param layout ILayoutSettings
+ */
+export const drawBGMesh = (bg: PIXI.Graphics, layout: ILayoutSettings) => {
+    // создаем фон
+    bg.beginPath();
+    bg.rect(0, 0, layout.width + SIDEBAR_WIDTH, layout.height);
+    bg.fill(hexToPixiColor(DEFAULT_PIXI_APPLICATION_BG));
+    bg.stroke({
+        width: layout.meshWidth,
+        color: hexToPixiColor(layout.meshColor)
+    });
+    bg.closePath();
+};
+
+/**
  * Отрисовать координаты для обычной плоскости
  * @param container PIXI.Container
  * @param width number ширина входящего контейнера
@@ -314,8 +288,8 @@ export const drawDefaultCoordinats = (width: number, height: number, x: number, 
  * @param style PIXI.TextStyle
  */
 export const drawIsometricCoordinats = (width: number, height: number, x: number, y: number): Text[] => {
-    const realNumberCellsVertical = Math.ceil(height / y);
-    const realNumberCellsHorizont = Math.ceil((width + SIDEBAR_WIDTH) / x);
+    const realNumberCellsVertical = Math.ceil((height * 1.5) / y);
+    const realNumberCellsHorizont = Math.ceil((width * 1.5 + SIDEBAR_WIDTH) / x);
     const arr: Text[] = [];
 
     const items = [

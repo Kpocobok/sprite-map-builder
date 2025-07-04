@@ -1,7 +1,9 @@
 import * as PIXI from 'pixi.js';
 import type {ILayoutSettings} from '../interfaces/store';
-import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, SIDEBAR_WIDTH} from '../constants/default';
-import {drawMeshes, getCoordinatsIsometricMeshLines, getCoordinatsDefaultMeshLines, getCoordinatsIsometricOses, getCoordinatsDefaultOses, drawCoordinats} from './pixi-mesh';
+import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, DEFAULT_MAIN_ID} from '../constants/default';
+import {drawMeshes, getCoordinatsIsometricMeshLines, getCoordinatsDefaultMeshLines, getCoordinatsIsometricOses, getCoordinatsDefaultOses, drawCoordinats, drawBGMesh} from './pixi-mesh';
+import {mouseDown, mouseMove, mouseOut, mouseOver, mouseScroll, mouseUp} from './pixi-events';
+import {centerLayout, getCenterLayout} from './pixi-common-methods';
 
 /**
  * Регистрация контейнеров в карте
@@ -28,20 +30,43 @@ export const registerContainer = (id: string, container: PIXI.Container): void =
 export const createDefaultContainers = (): void => {
     if (!window.ApiCanvasPixi) return;
 
+    const mainContainer: PIXI.Container = new PIXI.Container();
     const meshContainer: PIXI.Container = new PIXI.Container();
-    meshContainer.x = -SIDEBAR_WIDTH;
     const backgroundContainer: PIXI.Container = new PIXI.Container();
-    backgroundContainer.x = -SIDEBAR_WIDTH;
     const layersContainer: PIXI.Container = new PIXI.Container();
-    layersContainer.x = -SIDEBAR_WIDTH;
     const topStage: PIXI.Container = new PIXI.Container();
-    topStage.x = -SIDEBAR_WIDTH;
 
-    window.ApiCanvasPixi.stage.addChild(backgroundContainer);
-    window.ApiCanvasPixi.stage.addChild(meshContainer);
-    window.ApiCanvasPixi.stage.addChild(layersContainer);
-    window.ApiCanvasPixi.stage.addChild(topStage);
+    window.ApiCanvasPixi.stage.addChild(mainContainer);
 
+    mainContainer.interactive = true;
+    mainContainer.eventMode = 'static';
+    meshContainer.interactive = false;
+    backgroundContainer.interactive = false;
+    layersContainer.interactive = false;
+    topStage.interactive = false;
+
+    mainContainer.on('pointerover', mouseOver, mainContainer);
+    mainContainer.on('pointerout', mouseOut, mainContainer);
+    mainContainer.on('pointermove', mouseMove, mainContainer);
+    mainContainer.on('pointerdown', mouseDown, mainContainer);
+    mainContainer.on('pointerup', mouseUp, mainContainer);
+    // TODO: надо подумать к чему лучше применить
+    window.ApiCanvasPixi.canvas.addEventListener('wheel', mouseScroll, {passive: false});
+
+    mainContainer.label = DEFAULT_MAIN_ID;
+    backgroundContainer.label = DEFAULT_MESH_ID;
+    meshContainer.label = DEFAULT_BG_ID;
+    layersContainer.label = DEFAULT_LAYERS_ID;
+    topStage.label = DEFAULT_TOPSTAGE_ID;
+
+    mainContainer.addChild(backgroundContainer);
+    mainContainer.addChild(meshContainer);
+    mainContainer.addChild(layersContainer);
+    mainContainer.addChild(topStage);
+
+    mainContainer.cursor = 'default';
+
+    registerContainer(DEFAULT_MAIN_ID, mainContainer);
     registerContainer(DEFAULT_MESH_ID, backgroundContainer);
     registerContainer(DEFAULT_BG_ID, meshContainer);
     registerContainer(DEFAULT_LAYERS_ID, layersContainer);
@@ -63,9 +88,12 @@ export const updateLayout = (layout: ILayoutSettings): void => {
     meshContainer.children = [];
 
     // графические элементы
+    const bg: PIXI.Graphics = new PIXI.Graphics();
     const mesh: PIXI.Graphics = new PIXI.Graphics();
     const coordinats: PIXI.Container = new PIXI.Container();
     const oses: PIXI.Graphics = new PIXI.Graphics();
+
+    drawBGMesh(bg, layout);
 
     if (layout.showMesh) {
         // получаем массивы начальных и конечных точек линий сетки
@@ -86,9 +114,21 @@ export const updateLayout = (layout: ILayoutSettings): void => {
         drawCoordinats(coordinats, layout);
     }
 
+    const {x, y} = getCenterLayout();
+
+    bg.x = mesh.x = oses.x = coordinats.x = x;
+    bg.y = mesh.y = oses.y = coordinats.y = y;
+
+    meshContainer.addChild(bg);
     meshContainer.addChild(mesh);
     meshContainer.addChild(coordinats);
     meshContainer.addChild(oses);
 
     return;
 };
+
+/**
+ * Отцентровать рабочую область
+ * @returns
+ */
+export const moveCenter = (): void => centerLayout();

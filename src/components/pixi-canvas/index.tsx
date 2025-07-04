@@ -1,64 +1,63 @@
-import { useEffect, useRef, type ReactNode } from 'react';
-import { Application, Container } from 'pixi.js';
-import { Box } from './styles';
-import { hexToPixiColor } from '../../helpers/utils';
-import {
-  DEFAULT_PIXI_APPLICATION_SIZE,
-  DEFAULT_PIXI_APPLICATION_BG,
-} from '../../constants/default';
-import { useSelector } from 'react-redux';
-import { type IRootState, type ILayoutSettings } from '../../interfaces/store';
-import { createDefaultContainers, updateLayout } from '../../helpers/pixi';
+import {useEffect, useRef, type ReactNode} from 'react';
+import {Application, Container} from 'pixi.js';
+import {Box} from './styles';
+import {hexToPixiColor} from '../../helpers/utils';
+import {DEFAULT_PIXI_APPLICATION_SIZE, DEFAULT_PIXI_APPLICATION_BG} from '../../constants/default';
+import {useSelector} from 'react-redux';
+import {type IRootState, type ILayoutSettings} from '../../interfaces/store';
+import {createDefaultContainers, updateLayout} from '../../helpers/pixi';
+import type {PixiMap} from '../../declare';
 
 const PixiCanvas = (): ReactNode => {
-  const layout = useSelector<IRootState, ILayoutSettings>(
-    (state) => state.app.layout,
-  );
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const appRef = useRef<Application | null>(null);
+    const layout = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
+    const canvasRef = useRef<HTMLDivElement>(null);
+    const appRef = useRef<Application | null>(null);
 
-  useEffect(() => {
-    let destroyed: boolean = false;
+    useEffect(() => {
+        let destroyed: boolean = false;
 
-    (async () => {
-      if (!canvasRef.current || appRef.current) return;
+        (async () => {
+            if (!canvasRef.current || appRef.current) return;
 
-      const app = new Application();
+            const app = new Application();
 
-      await app.init({
-        width: DEFAULT_PIXI_APPLICATION_SIZE.width,
-        height: DEFAULT_PIXI_APPLICATION_SIZE.height,
-        resizeTo: window,
-        backgroundColor: hexToPixiColor(DEFAULT_PIXI_APPLICATION_BG),
-      });
+            await app.init({
+                width: DEFAULT_PIXI_APPLICATION_SIZE.width,
+                height: DEFAULT_PIXI_APPLICATION_SIZE.height,
+                resizeTo: window,
+                backgroundColor: hexToPixiColor(DEFAULT_PIXI_APPLICATION_BG)
+            });
 
-      if (destroyed) {
-        app.destroy(true);
-        return;
-      }
+            if (destroyed) {
+                app.destroy(true);
+                return;
+            }
 
-      canvasRef.current.appendChild(app.canvas);
-      appRef.current = app;
+            app.stage.eventMode = 'static';
+            app.stage.hitArea = app.screen;
 
-      window.ApiCanvasPixi = app;
-      window.ApiCanvasPixiContainerRegister = new Map<string, Container>();
+            canvasRef.current.appendChild(app.canvas);
+            appRef.current = app;
 
-      createDefaultContainers();
-      updateLayout(layout);
-    })();
+            window.ApiCanvasPixi = app;
+            window.ApiCanvasPixiContainerRegister = new Map<string, PixiMap>();
 
-    return () => {
-      destroyed = true;
-      window.ApiCanvasPixi = null;
-      window.ApiCanvasPixiContainerRegister = null;
-      if (appRef.current) {
-        appRef.current.destroy(true, { children: true });
-        appRef.current = null;
-      }
-    };
-  }, []);
+            createDefaultContainers();
+            updateLayout(layout);
+        })();
 
-  return <Box ref={canvasRef} />;
+        return () => {
+            destroyed = true;
+            window.ApiCanvasPixi = null;
+            window.ApiCanvasPixiContainerRegister = null;
+            if (appRef.current) {
+                appRef.current.destroy(true, {children: true});
+                appRef.current = null;
+            }
+        };
+    }, []);
+
+    return <Box ref={canvasRef} />;
 };
 
 export default PixiCanvas;
