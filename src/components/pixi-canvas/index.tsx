@@ -1,12 +1,11 @@
 import {useEffect, useRef, type ReactNode} from 'react';
-import {Application, Container} from 'pixi.js';
+import {Application} from 'pixi.js';
 import {Box} from './styles';
 import {hexToPixiColor} from '../../helpers/utils';
 import {DEFAULT_PIXI_APPLICATION_SIZE, DEFAULT_PIXI_APPLICATION_BG} from '../../constants/default';
 import {useSelector} from 'react-redux';
 import {type IRootState, type ILayoutSettings} from '../../interfaces/store';
 import {createDefaultContainers, updateLayout} from '../../helpers/pixi';
-import type {PixiMap} from '../../declare';
 
 const PixiCanvas = (): ReactNode => {
     const layout = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
@@ -40,7 +39,6 @@ const PixiCanvas = (): ReactNode => {
             appRef.current = app;
 
             window.ApiCanvasPixi = app;
-            window.ApiCanvasPixiContainerRegister = new Map<string, PixiMap>();
 
             createDefaultContainers();
             updateLayout(layout);
@@ -49,7 +47,6 @@ const PixiCanvas = (): ReactNode => {
         return () => {
             destroyed = true;
             window.ApiCanvasPixi = null;
-            window.ApiCanvasPixiContainerRegister = null;
             if (appRef.current) {
                 appRef.current.destroy(true, {children: true});
                 appRef.current = null;

@@ -229,7 +229,7 @@ const addCoordinats = (container: PIXI.Container, layout: ILayoutSettings, texts
  * @param bg PIXI.Graphics
  * @param layout ILayoutSettings
  */
-export const drawBGMesh = (bg: PIXI.Graphics, layout: ILayoutSettings) => {
+export const drawBGMesh = (bg: PIXI.Graphics, layout: ILayoutSettings): void => {
     // создаем фон
     bg.beginPath();
     bg.rect(0, 0, layout.width + SIDEBAR_WIDTH, layout.height);

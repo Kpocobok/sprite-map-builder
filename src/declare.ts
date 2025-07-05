@@ -8,6 +8,5 @@ declare global {
         ApiStartPointY: number | null;
         ApiCurrentTarget: PixiMap | null;
         ApiCanvasPixi: Application | null;
-        ApiCanvasPixiContainerRegister: Map<string, PixiMap> | null;
     }
 }

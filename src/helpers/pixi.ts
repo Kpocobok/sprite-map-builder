@@ -3,26 +3,8 @@ import type {ILayoutSettings} from '../interfaces/store';
 import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, DEFAULT_MAIN_ID, DEFAULT_PIXI_APPLICATION_BG} from '../constants/default';
 import {drawMeshes, getCoordinatsIsometricMeshLines, getCoordinatsDefaultMeshLines, getCoordinatsIsometricOses, getCoordinatsDefaultOses, drawCoordinats, drawBGMesh} from './pixi-mesh';
 import {mouseDown, mouseMove, mouseOut, mouseOver, mouseScroll, mouseUp} from './pixi-events';
-import {centerLayout, getCenterLayout} from './pixi-common-methods';
+import {centerLayout, getCenterLayout, getChild} from './pixi-common-methods';
 import {hexToPixiColor} from './utils';
-
-/**
- * Регистрация контейнеров в карте
- * @param id уникальный идентификатор контейнера
- * @param container контейнер для регистрации
- * @returns void
- */
-export const registerContainer = (id: string, container: PIXI.Container): void => {
-    if (!window.ApiCanvasPixiContainerRegister) return;
-
-    const isset: PIXI.Container | undefined = window.ApiCanvasPixiContainerRegister.get(id);
-
-    if (isset) return;
-
-    window.ApiCanvasPixiContainerRegister.set(id, container);
-
-    return;
-};
 
 /**
  * Создание контейнеров по умолчанию при регистрации pixi контейнера
@@ -38,16 +20,12 @@ export const createDefaultContainers = (): void => {
     const topStage: PIXI.Container = new PIXI.Container();
     const maskStage: PIXI.Graphics = new PIXI.Graphics();
 
-    const {x, y} = getCenterLayout();
-
     // создаем маску для рендеринга (обрезаем все что не в маске)
     maskStage.beginPath();
-    maskStage.fill(hexToPixiColor('#ff0000'));
-    maskStage.rect(0, 0, window.ApiCanvasPixi.screen.width, window.ApiCanvasPixi.screen.height);
+    maskStage.rect(0, 0, window.ApiCanvasPixi.screen.width, window.ApiCanvasPixi.screen.height).fill(hexToPixiColor(DEFAULT_PIXI_APPLICATION_BG));
     maskStage.closePath();
-    maskStage.visible = false;
-    maskStage.x = x;
-    maskStage.y = y;
+    maskStage.x = 0;
+    maskStage.y = 0;
 
     // eventmode для основого контейнера
     mainContainer.eventMode = 'static';
@@ -81,12 +59,6 @@ export const createDefaultContainers = (): void => {
 
     window.ApiCanvasPixi.stage.addChild(mainContainer);
 
-    registerContainer(DEFAULT_MAIN_ID, mainContainer);
-    registerContainer(DEFAULT_MESH_ID, backgroundContainer);
-    registerContainer(DEFAULT_BG_ID, meshContainer);
-    registerContainer(DEFAULT_LAYERS_ID, layersContainer);
-    registerContainer(DEFAULT_TOPSTAGE_ID, topStage);
-
     return;
 };
 
@@ -96,9 +68,11 @@ export const createDefaultContainers = (): void => {
  * @returns void
  */
 export const updateLayout = (layout: ILayoutSettings): void => {
-    if (!window.ApiCanvasPixi || !window.ApiCanvasPixiContainerRegister) return;
+    if (!window.ApiCanvasPixi) return;
 
-    const meshContainer: PIXI.Container = window.ApiCanvasPixiContainerRegister.get(DEFAULT_MESH_ID) as PIXI.Container;
+    const meshContainer: PIXI.Container | null = getChild(DEFAULT_MESH_ID, true);
+
+    if (!meshContainer) return;
 
     meshContainer.children = [];
 

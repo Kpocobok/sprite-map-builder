@@ -9,7 +9,7 @@ import {DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
  * @param event
  * @returns
  */
-export const mouseScroll = (event: WheelEvent) => {
+export const mouseScroll = (event: WheelEvent): void => {
     console.log('scroll', event);
 
     if (!window.ApiCanvasPixi) return;
