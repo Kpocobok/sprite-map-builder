@@ -6,6 +6,7 @@ declare global {
     interface Window {
         ApiStartPointX: number | null;
         ApiStartPointY: number | null;
+        ApiCurrentScale: number | null;
         ApiCurrentTarget: PixiMap | null;
         ApiCanvasPixi: Application | null;
     }

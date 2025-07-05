@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import {store} from '../../store';
 import type {ILayoutSettings} from '../../interfaces/store';
 import {getChild, getMiddle} from '../pixi-common-methods';
-import {DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
+import {DEFAULT_MAIN_ID, DEFAULT_PIXI_MAX_SCALE, DEFAULT_PIXI_MIN_SCALE, DEFAULT_PIXI_STEP_SCALE, SIDEBAR_WIDTH} from '../../constants/default';
 
 /**
  * Событие зума (НЕ ДОДЕЛАНО)
@@ -10,34 +10,30 @@ import {DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
  * @returns
  */
 export const mouseScroll = (event: WheelEvent): void => {
-    console.log('scroll', event);
-
-    if (!window.ApiCanvasPixi) return;
-
-    const container = getChild('main');
-
-    if (!container) return;
-
-    let scale = 1;
-    const scaleStep = 0.1;
-    const minScale = 0.5;
-    const maxScale = 4;
+    // console.log('scroll', event);
 
     event.preventDefault();
 
+    const main = getChild(DEFAULT_MAIN_ID);
+
+    if (!main || !event.ctrlKey || !main || !window.ApiCanvasPixi) return;
+
     const direction = event.deltaY > 0 ? -1 : 1;
-    const newScale = Math.min(Math.max(scale + direction * scaleStep, minScale), maxScale);
-    const scaleRatio = newScale / scale;
+    const scale = direction * DEFAULT_PIXI_STEP_SCALE;
 
-    const mouse = window.ApiCanvasPixi?.renderer.events.pointer.screen;
-    const local = container.toLocal(mouse);
+    const scaleX = main.scale.x + scale;
+    const scaleY = main.scale.y + scale;
+    const offsetX = main.x + (main.width - main.width * scaleX) / 4;
+    const offsetY = main.y + (main.height - main.height * scaleY) / 4;
+    // const offsetX = main.x + ((main.width - main.width * scaleX) / 2) * direction;
+    // const offsetY = main.y + ((main.height - main.height * scaleY) / 2) * direction;
 
-    container.x -= local.x * (scaleRatio - 1);
-    container.y -= local.y * (scaleRatio - 1);
+    if (scaleX > DEFAULT_PIXI_MIN_SCALE && scaleX < DEFAULT_PIXI_MAX_SCALE && scaleY > DEFAULT_PIXI_MIN_SCALE && scaleY < DEFAULT_PIXI_MAX_SCALE) {
+        main.scale.set(scaleX, scaleY);
 
-    scale = newScale;
-
-    container.scale.set(scale);
+        console.log(scaleX, scaleY, event.x, event.y);
+        main.position.set(offsetX, offsetY);
+    }
 };
 
 /**

@@ -5,6 +5,9 @@ export const DEFAULT_PIXI_APPLICATION_SIZE: {width: number; height: number} = {
     height: window.innerHeight
 };
 export const DEFAULT_PIXI_APPLICATION_BG: string = '#f5f5f5';
+export const DEFAULT_PIXI_MAX_SCALE: number = 1.5;
+export const DEFAULT_PIXI_MIN_SCALE: number = 0.5;
+export const DEFAULT_PIXI_STEP_SCALE: number = 0.025;
 
 export const DEFAULT_MAIN_ID: string = 'main';
 export const DEFAULT_MESH_ID: string = 'mesh';

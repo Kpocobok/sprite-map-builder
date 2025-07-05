@@ -19,6 +19,8 @@ export const createDefaultContainers = (): void => {
     const layersContainer: PIXI.Container = new PIXI.Container();
     const topStage: PIXI.Container = new PIXI.Container();
     const maskStage: PIXI.Graphics = new PIXI.Graphics();
+    // устанавливаю scale в 1
+    window.ApiCurrentScale = 1;
 
     // создаем маску для рендеринга (обрезаем все что не в маске)
     maskStage.beginPath();
