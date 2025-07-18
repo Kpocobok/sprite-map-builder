@@ -108,17 +108,20 @@ export const mouseUp = (event: PIXI.FederatedPointerEvent): void => {
  * @returns
  */
 export const mouseMove = (event: PIXI.FederatedPointerEvent): void => {
+    const layout: ILayoutSettings = store.getState().app.layout;
     const main = getChild(DEFAULT_MAIN_ID) as PIXI.Container;
+    const {x, y} = getMiddle();
     const center = getCenterLayout();
+
+    const realMouseX = -1 * (center.x + x - event.x + main.x); // координаты относительно осей реальные по курсору
+    const realMouseY = center.y + y - event.y + main.y; // координаты относительно осей реальные по курсору
+
     const middleRendererX = (window.ApiCanvasPixi as PIXI.Application).renderer.width / 2;
     const middleRendererY = (window.ApiCanvasPixi as PIXI.Application).renderer.height / 2;
-    const {x, y} = getMiddle();
 
-    console.log(main.x + event.x, main.y + event.y, x, y, center.x, center.y, middleRendererX, middleRendererY);
+    console.log(main.x, main.y, realMouseX, realMouseY);
     // console.log('mouseMove', event);
     if (!window.ApiCanvasPixi) return;
-
-    const layout: ILayoutSettings = store.getState().app.layout;
 
     const centerX = x - window.ApiCanvasPixi.screen.width / 2;
     const centerY = y - window.ApiCanvasPixi.screen.height / 2;
