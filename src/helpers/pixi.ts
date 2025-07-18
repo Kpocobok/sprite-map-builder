@@ -53,8 +53,6 @@ export const createDefaultContainers = (): void => {
     mainContainer.addChild(layersContainer);
     mainContainer.addChild(topStage);
 
-    mainContainer.cursor = 'default';
-
     window.ApiCanvasPixi.stage.addChild(maskStage);
 
     mainContainer.mask = maskStage;
