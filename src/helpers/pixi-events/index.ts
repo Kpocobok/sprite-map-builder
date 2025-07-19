@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import {store} from '../../store';
 import type {ILayoutSettings, IRootState} from '../../interfaces/store';
-import {getCenterLayout, getChild, getMiddle, getRealCoordinatsFromCommon} from '../pixi-common-methods';
+import {getChild, getCoordinatsFromIsometric, getCoordinatsFromTile, getMiddle, getRealCoordinatsFromCommon} from '../pixi-common-methods';
 import {DEFAULT_MAIN_ID, DEFAULT_PIXI_MAX_SCALE, DEFAULT_PIXI_MIN_SCALE, DEFAULT_PIXI_STEP_SCALE, SIDEBAR_WIDTH} from '../../constants/default';
 
 /**
@@ -79,7 +79,13 @@ export const mouseOut = (event: PIXI.FederatedPointerEvent): void => {
  */
 export const mouseDown = (event: PIXI.FederatedPointerEvent): void => {
     // console.log('mouseDown', event);
-    const main: PIXI.Container | null = getChild(DEFAULT_MAIN_ID, true);
+    const main: PIXI.Container = getChild(DEFAULT_MAIN_ID, true) as PIXI.Container;
+
+    const all = getRealCoordinatsFromCommon(event.x, event.y);
+    const abort = getCoordinatsFromIsometric(all.isoX, all.isoY);
+    const tile = getCoordinatsFromTile(all.tileX, all.tileY);
+
+    console.log(all, abort, tile);
 
     if (main && main === event.target) {
         // проверяем нажат ли Ctrl
@@ -109,17 +115,23 @@ export const mouseUp = (event: PIXI.FederatedPointerEvent): void => {
  */
 export const mouseMove = (event: PIXI.FederatedPointerEvent): void => {
     const layout: ILayoutSettings = store.getState().app.layout;
-    const main = getChild(DEFAULT_MAIN_ID) as PIXI.Container;
     const {x, y} = getMiddle();
-    const center = getCenterLayout();
 
-    const realMouseX = -1 * (center.x + x - event.x + main.x); // координаты относительно осей реальные по курсору
-    const realMouseY = center.y + y - event.y + main.y; // координаты относительно осей реальные по курсору
+    // const main = getChild(DEFAULT_MAIN_ID) as PIXI.Container;
+    // const center = getCenterLayout();
 
-    const middleRendererX = (window.ApiCanvasPixi as PIXI.Application).renderer.width / 2;
-    const middleRendererY = (window.ApiCanvasPixi as PIXI.Application).renderer.height / 2;
+    // const realMouseX = -1 * (center.x + x - event.x + main.x); // координаты относительно осей реальные по курсору
+    // const realMouseY = center.y + y - event.y + main.y; // координаты относительно осей реальные по курсору
 
-    console.log(main.x, main.y, realMouseX, realMouseY);
+    // const diffX = realMouseX < 0 ? -1 : 1;
+    // const diffY = realMouseY < 0 ? -1 : 1;
+    // const defaultMeshX = Math.abs(Math.ceil(realMouseX / layout.horizontal)) === 0 ? 1 * diffX : Math.abs(Math.ceil(realMouseX / layout.horizontal)) * diffX;
+    // const defaultMeshY = Math.abs(Math.ceil(realMouseY / layout.vertical)) === 0 ? 1 * diffY : Math.abs(Math.ceil(realMouseY / layout.vertical)) * diffY;
+
+    // const middleRendererX = (window.ApiCanvasPixi as PIXI.Application).renderer.width / 2;
+    // const middleRendererY = (window.ApiCanvasPixi as PIXI.Application).renderer.height / 2;
+
+    // console.log(realMouseX, realMouseY, defaultMeshX, defaultMeshY);
     // console.log('mouseMove', event);
     if (!window.ApiCanvasPixi) return;
 
