@@ -25,3 +25,12 @@ export interface ICorners {
 export interface Text extends ICoordinats {
     text: string;
 }
+
+export interface IStatusCoordinats {
+    x: number;
+    y: number;
+    tileX: number;
+    tileY: number;
+    isoX: number;
+    isoY: number;
+}

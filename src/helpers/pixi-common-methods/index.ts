@@ -2,7 +2,7 @@ import type {Container} from 'pixi.js';
 import {DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
 import type {PixiMap} from '../../declare';
 import {store} from '../../store';
-import type {ICoordinats} from '../pixi-interface';
+import type {ICoordinats, IStatusCoordinats} from '../pixi-interface';
 import type {ILayoutSettings} from '../../interfaces/store';
 
 /**
@@ -58,7 +58,7 @@ export const getCenterLayout = (): ICoordinats => {
  * isoX - координаты тайлов в изометрической сетке по оси X
  * isoY - координаты тайлов в изометрической сетке по оси Y
  */
-export const getRealCoordinatsFromCommon = (CommonX: number, CommonY: number) => {
+export const getRealCoordinatsFromCommon = (CommonX: number, CommonY: number): IStatusCoordinats => {
     const main: Container = getChild(DEFAULT_MAIN_ID, true) as Container;
     const layout: ILayoutSettings = store.getState().app.layout;
     const center = getCenterLayout();

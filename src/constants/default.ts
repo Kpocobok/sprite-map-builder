@@ -34,5 +34,5 @@ export const DEFAULT_LAYOUT: ILayoutSettings = {
     height: 5000,
     showMesh: true,
     showOs: true,
-    showText: true
+    showText: false
 };
