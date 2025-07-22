@@ -11,25 +11,18 @@ import Checkbox from '../../../components/checkbox';
 import type {IRootState, ILayoutSettings} from '../../../interfaces/store';
 import InputNumber from '../../../components/input-number';
 import InputColor from '../../../components/input-color';
+import type {IConfig} from '../interfaces';
+import {DEFAULT_CONFIG} from '../constants';
+import * as PIXI from 'pixi.js';
 
-interface IConfig {
-    collisionX: string;
-    collisionY: string;
-    collisionWeight: string;
-    collisionLineColor: string;
+interface ISideBar {
+    bg?: PIXI.Container;
 }
 
-const DEFAULT_CONFIG: IConfig = {
-    collisionX: '0',
-    collisionY: '0',
-    collisionWeight: '1',
-    collisionLineColor: '#008000'
-};
-
-const SideBar = (): ReactNode => {
+const SideBar = (props: ISideBar): ReactNode => {
     const dispatch = useDispatch();
-    const layout = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
     const [config, setConfig] = useState<IConfig>(DEFAULT_CONFIG);
+    const layout = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
 
     const handleShowMeshModal = () => dispatch(setModal({key: MESH_SETTINGS}));
 
@@ -41,7 +34,9 @@ const SideBar = (): ReactNode => {
 
     const handleCenterSpace = () => moveCenter();
 
-    const handleChangeConfig = (value: string, field: keyof IConfig) => setConfig({...config, [field]: value});
+    const handleChangeConfig = (value: string, field: keyof IConfig) => {
+        setConfig({...config, [field]: value});
+    };
 
     return (
         <Container>
@@ -52,7 +47,7 @@ const SideBar = (): ReactNode => {
                         <InputNumber value={config.collisionX} onChange={(value: string) => handleChangeConfig(value, 'collisionX')} label='Ось Х' />
                         <InputNumber value={config.collisionY} onChange={(value: string) => handleChangeConfig(value, 'collisionY')} label='Ось Y' />
                         <InputNumber value={config.collisionWeight} onChange={(value: string) => handleChangeConfig(value, 'collisionWeight')} label='Толщина линии' />
-                        <InputColor value={layout.textColor} onChange={(value: string) => handleChangeConfig(value, 'collisionLineColor')} label='Цвет координат' />
+                        <InputColor value={config.collisionLineColor} onChange={(value: string) => handleChangeConfig(value, 'collisionLineColor')} label='Цвет координат' />
                     </SectionButtons>
                 </Section>
                 <Section>
@@ -60,7 +55,7 @@ const SideBar = (): ReactNode => {
                     <SectionButtons>
                         <Checkbox value={Boolean(layout.showOs)} onChange={handleShowIsoOS} label='Показывать оси' />
                         <Checkbox value={Boolean(layout.showMesh)} onChange={handleShowMesh} label='Показывать сетку' />
-                        <Checkbox value={Boolean(layout.showText)} onChange={handleShowCoordinats} label='Координаты' />
+                        {layout.horizontal > 63 && layout.vertical > 31 ? <Checkbox value={Boolean(layout.showText)} onChange={handleShowCoordinats} label='Координаты' /> : null}
                     </SectionButtons>
                     <SectionButtons>
                         <Button onClick={handleShowMeshModal}>

@@ -1,15 +1,12 @@
-import {useEffect, useState, type RefObject} from 'react';
+import {useEffect, useState} from 'react';
 import {Container, Content, StatusBox, Title, Value} from './styles';
 import {getRealCoordinatsFromCommon} from '../../../helpers/pixi-common-methods';
 import type {IStatusCoordinats} from '../../../helpers/pixi-interface';
 import {useSelector} from 'react-redux';
 import type {IRootState, ILayoutSettings} from '../../../interfaces/store';
+import type {IParent} from '../../../interfaces/components';
 
-interface IStatusBar {
-    container?: RefObject<HTMLDivElement | null>;
-}
-
-const StatusBar = (props: IStatusBar) => {
+const StatusBar = (props: IParent) => {
     const config = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
     const [status, setStatus] = useState<IStatusCoordinats | null>(null);
 
@@ -39,6 +36,14 @@ const StatusBar = (props: IStatusBar) => {
                 <StatusBox>
                     <Title>Сетка Y:</Title>
                     <Value>{config.type === 'default' ? status?.tileY : status?.isoY}</Value>
+                </StatusBox>
+                <StatusBox>
+                    <Title>Ширина:</Title>
+                    <Value>{config.width}</Value>
+                </StatusBox>
+                <StatusBox>
+                    <Title>Высота:</Title>
+                    <Value>{config.height}</Value>
                 </StatusBox>
             </Content>
         </Container>

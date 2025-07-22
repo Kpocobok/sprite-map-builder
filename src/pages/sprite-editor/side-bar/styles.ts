@@ -21,6 +21,7 @@ export const ControllPanel = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
+    color: var(--background-box);
 `;
 
 export const Section = styled.div`
@@ -29,7 +30,6 @@ export const Section = styled.div`
 
 export const SectionTitle = styled.div`
     margin-bottom: 8px;
-    color: #fff;
     font-weight: 800;
 `;
 

@@ -17,7 +17,7 @@ export const Content = styled.div`
     box-shadow: 0 0 4px #000;
     padding: 4px 6px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     grid-column-gap: 12px;
     font-size: 12px;
     color: #fff;

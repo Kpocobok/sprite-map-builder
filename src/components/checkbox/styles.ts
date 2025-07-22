@@ -36,6 +36,5 @@ export const Content = styled.div`
     gap: 6px;
     align-items: center;
     font-size: 14px;
-    color: #fff;
     cursor: pointer;
 `;

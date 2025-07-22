@@ -27,15 +27,27 @@ const InputNumber = (props: IInputNumber): ReactNode => {
         props.onChange(e.target.value);
     };
 
+    const handleChageMinus = () => {
+        setValue(Number(value) - 1);
+
+        props.onChange(String(Number(value) - 1));
+    };
+
+    const handleChagePlus = () => {
+        setValue(Number(value) + 1);
+
+        props.onChange(String(Number(value) + 1));
+    };
+
     return (
         <Container>
             {props.label ? <Label>{props.label}</Label> : null}
             <Content>
-                <Controll side='left'>
+                <Controll side='left' onClick={handleChageMinus}>
                     <IconMinus />
                 </Controll>
                 <InputValue value={value} onChange={handleChange} />
-                <Controll side='right'>
+                <Controll side='right' onClick={handleChagePlus}>
                     <IconPlus />
                 </Controll>
             </Content>

@@ -13,7 +13,6 @@ export const Controll = styled.div<IControll>`
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
     font-size: 12px;
     box-shadow: inset 0 0 10px #001683;
     cursor: pointer;
@@ -53,5 +52,4 @@ export const Content = styled.div`
 export const Label = styled.div`
     font-size: 12px;
     display: block;
-    color: #fff;
 `;
