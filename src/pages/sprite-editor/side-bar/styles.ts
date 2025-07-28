@@ -33,12 +33,24 @@ export const SectionTitle = styled.div`
     font-weight: 800;
 `;
 
+export const SectionLine = styled.div`
+    margin-bottom: 12px;
+    input {
+        height: 30px;
+        font-size: 14px;
+    }
+`;
+
 export const SectionButtons = styled.div`
     display: grid;
     grid-template-columns: repeat(2, calc(50% - 6px));
     grid-gap: 12px;
     width: 100%;
     margin-bottom: 12px;
+    input {
+        height: 30px;
+        font-size: 14px;
+    }
 `;
 
 export const Icon = styled.div`

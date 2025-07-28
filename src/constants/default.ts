@@ -15,6 +15,12 @@ export const DEFAULT_BG_ID: string = 'bg';
 export const DEFAULT_LAYERS_ID: string = 'layers';
 export const DEFAULT_TOPSTAGE_ID: string = 'topstage';
 export const DEFAULT_MASK_ID: string = 'mask';
+export const DEFAULT_COLLISION: string = 'collision';
+
+export const DEFAULT_LAYOUT_BG_MESH = 'LAYOUT_BG_MESH';
+export const DEFAULT_LAYOUT_MESH_MESH = 'LAYOUT_MESH_MESH';
+export const DEFAULT_LAYOUT_COORDINATS_MESH = 'LAYOUT_COORDINATS_MESH';
+export const DEFAULT_LAYOUT_OSES_MESH = 'LAYOUT_OSES_MESH';
 
 export const SIDEBAR_WIDTH: number = 400;
 
@@ -22,8 +28,8 @@ export const DEFAULT_MESH_TYPES: MESH_TYPES[] = ['default', 'isometric'];
 
 export const DEFAULT_LAYOUT: ILayoutSettings = {
     type: DEFAULT_MESH_TYPES[1],
-    horizontal: 128,
-    vertical: 64,
+    horizontal: 32,
+    vertical: 16,
     meshColor: '#E0E0E0',
     meshWidth: 1,
     osColor: '#ff0000',
@@ -34,5 +40,6 @@ export const DEFAULT_LAYOUT: ILayoutSettings = {
     height: 5000,
     showMesh: true,
     showOs: true,
+    showStandartOs: false,
     showText: false
 };

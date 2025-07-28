@@ -4,6 +4,7 @@ import {hexToRgba} from '../../helpers/utils';
 interface IContainer {
     $padding?: string;
     $radius?: string;
+    $center?: boolean;
 }
 
 export const Container = styled.div<IContainer>`
@@ -20,6 +21,9 @@ export const Container = styled.div<IContainer>`
     cursor: pointer;
     transition: all 0.1s linear;
     box-shadow: inset 0 0 10px #001683;
+    justify-content: ${(props) => {
+        return props.$center ? `center` : `baseline`;
+    }};
     &:hover {
         background: ${hexToRgba('#ffffff', 0.12)};
         box-shadow: inset 0 0 10px #260393;

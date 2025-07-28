@@ -4,23 +4,31 @@ import {getRealCoordinatsFromCommon} from '../../../helpers/pixi-common-methods'
 import type {IStatusCoordinats} from '../../../helpers/pixi-interface';
 import {useSelector} from 'react-redux';
 import type {IRootState, ILayoutSettings} from '../../../interfaces/store';
-import type {IParent} from '../../../interfaces/components';
 
-const StatusBar = (props: IParent) => {
+const StatusBar = () => {
     const config = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
     const [status, setStatus] = useState<IStatusCoordinats | null>(null);
 
     useEffect(() => {
-        if (props.container?.current) {
-            props.container.current.addEventListener('mousemove', handleMouseMove);
+        const canvas = window.ApiCanvasPixi?.renderer.canvas;
+        if (canvas) {
+            canvas.addEventListener('mousemove', handleMouseMove);
         }
-    }, [props.container]);
+    }, [window.ApiCanvasPixi?.renderer.canvas]);
 
     const handleMouseMove = (e: MouseEvent) => setStatus(getRealCoordinatsFromCommon(e.clientX, e.clientY));
 
     return (
         <Container>
             <Content>
+                <StatusBox>
+                    <Title>Реал X:</Title>
+                    <Value>{status?.baseX}</Value>
+                </StatusBox>
+                <StatusBox>
+                    <Title>Реал X:</Title>
+                    <Value>{status?.baseY}</Value>
+                </StatusBox>
                 <StatusBox>
                     <Title>Поле X:</Title>
                     <Value>{status?.x}</Value>

@@ -1,10 +1,30 @@
 import * as PIXI from 'pixi.js';
 import type {ILayoutSettings} from '../interfaces/store';
-import {DEFAULT_MESH_ID, DEFAULT_BG_ID, DEFAULT_LAYERS_ID, DEFAULT_TOPSTAGE_ID, DEFAULT_MAIN_ID, DEFAULT_PIXI_APPLICATION_BG} from '../constants/default';
-import {drawMeshes, getCoordinatsIsometricMeshLines, getCoordinatsDefaultMeshLines, getCoordinatsIsometricOses, getCoordinatsDefaultOses, drawCoordinats, drawBGMesh} from './pixi-mesh';
+import {
+    DEFAULT_MESH_ID,
+    DEFAULT_BG_ID,
+    DEFAULT_LAYERS_ID,
+    DEFAULT_TOPSTAGE_ID,
+    DEFAULT_MAIN_ID,
+    DEFAULT_PIXI_APPLICATION_BG,
+    DEFAULT_LAYOUT_BG_MESH,
+    DEFAULT_LAYOUT_MESH_MESH,
+    DEFAULT_LAYOUT_COORDINATS_MESH,
+    DEFAULT_LAYOUT_OSES_MESH
+} from '../constants/default';
+import {
+    drawMeshes,
+    getCoordinatsIsometricMeshLines,
+    getCoordinatsDefaultMeshLines,
+    getCoordinatsIsometricOses,
+    getCoordinatsDefaultOses,
+    drawCoordinats,
+    drawBGMesh
+} from './pixi-mesh';
 import {mouseDown, mouseMove, mouseOut, mouseOver, mouseScroll, mouseUp} from './pixi-events';
-import {centerLayout, getCenterLayout, getChild} from './pixi-common-methods';
+import {centerLayout, drawCollision, getCenterLayout, getChild} from './pixi-common-methods';
 import {hexToPixiColor} from './utils';
+import type {IConfig} from '../pages/sprite-editor/interfaces';
 
 /**
  * Создание контейнеров по умолчанию при регистрации pixi контейнера
@@ -43,13 +63,13 @@ export const createDefaultContainers = (): void => {
     window.ApiCanvasPixi.canvas.addEventListener('wheel', mouseScroll, {passive: false});
 
     mainContainer.label = DEFAULT_MAIN_ID;
-    backgroundContainer.label = DEFAULT_MESH_ID;
-    meshContainer.label = DEFAULT_BG_ID;
+    meshContainer.label = DEFAULT_MESH_ID;
+    backgroundContainer.label = DEFAULT_BG_ID;
     layersContainer.label = DEFAULT_LAYERS_ID;
     topStage.label = DEFAULT_TOPSTAGE_ID;
 
-    mainContainer.addChild(backgroundContainer);
     mainContainer.addChild(meshContainer);
+    mainContainer.addChild(backgroundContainer);
     mainContainer.addChild(layersContainer);
     mainContainer.addChild(topStage);
 
@@ -63,11 +83,10 @@ export const createDefaultContainers = (): void => {
 };
 
 /**
- * Обновить размеры и сетку поля
- * @param layout ILayoutSettings
- * @returns void
+ * Создать основной блок сетки
+ * @returns
  */
-export const updateLayout = (layout: ILayoutSettings): void => {
+export const createLayout = (): void => {
     if (!window.ApiCanvasPixi) return;
 
     const meshContainer: PIXI.Container | null = getChild(DEFAULT_MESH_ID, true);
@@ -78,9 +97,47 @@ export const updateLayout = (layout: ILayoutSettings): void => {
 
     // графические элементы
     const bg: PIXI.Graphics = new PIXI.Graphics();
+    bg.label = DEFAULT_LAYOUT_BG_MESH;
     const mesh: PIXI.Graphics = new PIXI.Graphics();
+    mesh.label = DEFAULT_LAYOUT_MESH_MESH;
     const coordinats: PIXI.Container = new PIXI.Container();
+    coordinats.label = DEFAULT_LAYOUT_COORDINATS_MESH;
     const oses: PIXI.Graphics = new PIXI.Graphics();
+    oses.label = DEFAULT_LAYOUT_OSES_MESH;
+
+    const {x, y} = getCenterLayout();
+
+    bg.x = mesh.x = oses.x = coordinats.x = x;
+    bg.y = mesh.y = oses.y = coordinats.y = y;
+
+    meshContainer.addChild(bg);
+    meshContainer.addChild(mesh);
+    meshContainer.addChild(coordinats);
+    meshContainer.addChild(oses);
+
+    return;
+};
+
+/**
+ * Обновить размеры и сетку поля
+ * @param layout ILayoutSettings
+ * @returns void
+ */
+export const updateLayout = (layout: ILayoutSettings): void => {
+    if (!window.ApiCanvasPixi) return;
+
+    // графические элементы
+    const bg: PIXI.Graphics = getChild(DEFAULT_LAYOUT_BG_MESH, true) as PIXI.Graphics;
+    const mesh: PIXI.Graphics = getChild(DEFAULT_LAYOUT_MESH_MESH, true) as PIXI.Graphics;
+    const coordinats: PIXI.Container = getChild(DEFAULT_LAYOUT_COORDINATS_MESH, true) as PIXI.Container;
+    const oses: PIXI.Graphics = getChild(DEFAULT_LAYOUT_OSES_MESH, true) as PIXI.Graphics;
+
+    if (!bg || !mesh || !coordinats || !oses) return;
+
+    bg.clear();
+    mesh.clear();
+    oses.clear();
+    coordinats.children = [];
 
     drawBGMesh(bg, layout);
 
@@ -93,7 +150,11 @@ export const updateLayout = (layout: ILayoutSettings): void => {
 
     if (layout.showOs) {
         // получаем массив началных и конечных точке для осей
-        const cordinats = layout.type === 'isometric' ? getCoordinatsIsometricOses(layout) : getCoordinatsDefaultOses(layout);
+        const cordinats = layout.showStandartOs
+            ? [...getCoordinatsIsometricOses(layout), ...getCoordinatsDefaultOses(layout)]
+            : layout.type === 'isometric'
+              ? getCoordinatsIsometricOses(layout)
+              : getCoordinatsDefaultOses(layout);
         // начинаем отрисовку
         drawMeshes(cordinats, oses, layout.osColor, layout.osWidth);
     }
@@ -108,14 +169,15 @@ export const updateLayout = (layout: ILayoutSettings): void => {
     bg.x = mesh.x = oses.x = coordinats.x = x;
     bg.y = mesh.y = oses.y = coordinats.y = y;
 
-    meshContainer.addChild(bg);
-    meshContainer.addChild(mesh);
-    meshContainer.addChild(coordinats);
-    meshContainer.addChild(oses);
-    meshContainer.cacheAsTexture(true);
-
     return;
 };
+
+/**
+ * Обновление графического элемента для настройки коллизий
+ * @param config
+ * @returns
+ */
+export const updateCollision = (config: IConfig): void => drawCollision(config);
 
 /**
  * Отцентровать рабочую область

@@ -1,8 +1,8 @@
 import type {IConfig} from './interfaces';
 
 export const DEFAULT_CONFIG: IConfig = {
-    collisionX: '0',
-    collisionY: '0',
-    collisionWeight: '1',
-    collisionLineColor: '#008000'
+    collisionX: '1',
+    collisionY: '1',
+    collisionWeight: '2',
+    collisionLineColor: '#01894E'
 };

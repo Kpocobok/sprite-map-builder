@@ -14,7 +14,3 @@ export interface IMenuRoute {
     component?: () => ReactNode;
     event?: () => void;
 }
-
-export interface IParent {
-    container?: RefObject<HTMLDivElement | null>;
-}

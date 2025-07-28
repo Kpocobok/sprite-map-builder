@@ -29,6 +29,8 @@ export interface Text extends ICoordinats {
 export interface IStatusCoordinats {
     x: number;
     y: number;
+    baseX: number;
+    baseY: number;
     tileX: number;
     tileY: number;
     isoX: number;

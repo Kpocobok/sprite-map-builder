@@ -1,9 +1,11 @@
-import type {Container} from 'pixi.js';
-import {DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
+import {Container, Graphics} from 'pixi.js';
+import {DEFAULT_BG_ID, DEFAULT_COLLISION, DEFAULT_MAIN_ID, SIDEBAR_WIDTH} from '../../constants/default';
 import type {PixiMap} from '../../declare';
 import {store} from '../../store';
 import type {ICoordinats, IStatusCoordinats} from '../pixi-interface';
 import type {ILayoutSettings} from '../../interfaces/store';
+import type {IConfig} from '../../pages/sprite-editor/interfaces';
+import {hexToPixiColor} from '../utils';
 
 /**
  * Получить контейнер или спрайт по ID
@@ -51,8 +53,10 @@ export const getCenterLayout = (): ICoordinats => {
  * @param CommonX - позиция мыши по оси X из события
  * @param CommonY - позиция мыши по оси Y из события
  * @returns
- * x - реальные координаты в пространстве по оси X
- * y - реальные коордианты в пространстве по оси Y
+ * x - реальные координаты в пространстве по оси X относительно рабочей области
+ * y - реальные коордианты в пространстве по оси Y отностельно рабочей области
+ * baseX - реальные координаты в пространстве по оси X относительно полотна
+ * baseY - реальные координаты в пространстве по оси Y относительно полотна
  * tileX - координаты тайлов в сетке по умолчанию по оси X
  * tileY - координаты тайлов в сетке по умолчанию по оси Y
  * isoX - координаты тайлов в изометрической сетке по оси X
@@ -63,6 +67,9 @@ export const getRealCoordinatsFromCommon = (CommonX: number, CommonY: number): I
     const layout: ILayoutSettings = store.getState().app.layout;
     const center = getCenterLayout();
     const {x, y} = getMiddle();
+
+    const baseX = Math.round(Math.abs(center.x) + CommonX - main.x);
+    const baseY = Math.round(Math.abs(center.y) + CommonY - main.y);
 
     const realMouseX = -1 * (center.x + x - CommonX + main.x); // координаты относительно осей реальные по курсору
     const realMouseY = center.y + y - CommonY + main.y; // координаты относительно осей реальные по курсору
@@ -79,7 +86,7 @@ export const getRealCoordinatsFromCommon = (CommonX: number, CommonY: number): I
     const isometricMeshX = isoX < 0 ? Math.ceil(isoX) - 1 : Math.ceil(isoX);
     const isometricMeshY = isoY < 0 ? Math.ceil(isoY) - 1 : Math.ceil(isoY);
 
-    return {x: realMouseX, y: realMouseY, tileX: defaultMeshX, tileY: defaultMeshY, isoX: isometricMeshX, isoY: isometricMeshY};
+    return {x: realMouseX, y: realMouseY, baseX, baseY, tileX: defaultMeshX, tileY: defaultMeshY, isoX: isometricMeshX, isoY: isometricMeshY};
 };
 
 /**
@@ -177,7 +184,75 @@ export const getCoordinatsFromTile = (tileX: number, tileY: number) => {
     const rightBottomX = centerX + layout.horizontal / 2;
     const rightBottomY = centerX - layout.vertical / 2;
 
-    return {centerX, centerY, centerTopX, centerTopY, leftTopX, leftTopY, centerLeftX, centerLeftY, rightTopX, rightTopY, centerRightX, centerRightY, centerBottomX, centerBottomY, leftBottomX, leftBottomY, rightBottomX, rightBottomY};
+    return {
+        centerX,
+        centerY,
+        centerTopX,
+        centerTopY,
+        leftTopX,
+        leftTopY,
+        centerLeftX,
+        centerLeftY,
+        rightTopX,
+        rightTopY,
+        centerRightX,
+        centerRightY,
+        centerBottomX,
+        centerBottomY,
+        leftBottomX,
+        leftBottomY,
+        rightBottomX,
+        rightBottomY
+    };
+};
+
+/**
+ * Обновление колизий
+ */
+export const drawCollision = (config: IConfig): void => {
+    const {x, y} = getMiddle();
+    const bg = getChild(DEFAULT_BG_ID, true);
+
+    if (!bg) return;
+
+    bg.children = [];
+
+    const collision: Graphics = new Graphics();
+    const layout: ILayoutSettings = store.getState().app.layout;
+    const configX = Number(config.collisionX);
+    const configY = Number(config.collisionY);
+    const width = Number(config.collisionWeight);
+
+    collision.label = DEFAULT_COLLISION;
+    collision.beginPath();
+    collision.moveTo(x, y);
+
+    if (layout.type === 'isometric') {
+        collision.lineTo(x + configX * (layout.horizontal / 2), y - configX * (layout.vertical / 2));
+        collision.lineTo(x + configX * (layout.horizontal / 2) - configY * (layout.horizontal / 2), y - (configX + configY) * (layout.vertical / 2));
+        collision.lineTo(x - configY * (layout.horizontal / 2), y - configY * (layout.vertical / 2));
+    } else {
+        collision.lineTo(x + configX * layout.horizontal, y);
+        collision.lineTo(x + configX * layout.horizontal, y - configY * layout.vertical);
+        collision.lineTo(x, y - configY * layout.vertical);
+    }
+
+    collision.lineTo(x, y);
+    collision.stroke({
+        width,
+        color: hexToPixiColor(config.collisionLineColor)
+    });
+    collision.closePath();
+
+    const centerLayout = getCenterLayout();
+
+    collision.position.set(centerLayout.x, centerLayout.y);
+
+    bg.addChild(collision);
+
+    console.log(111, collision);
+
+    return;
 };
 
 /**

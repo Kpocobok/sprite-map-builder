@@ -5,9 +5,14 @@ import {hexToPixiColor} from '../../helpers/utils';
 import {DEFAULT_PIXI_APPLICATION_SIZE, DEFAULT_PIXI_APPLICATION_BG} from '../../constants/default';
 import {useSelector} from 'react-redux';
 import {type IRootState, type ILayoutSettings} from '../../interfaces/store';
-import {createDefaultContainers, updateLayout} from '../../helpers/pixi';
+import {createDefaultContainers, createLayout, updateLayout} from '../../helpers/pixi';
 
-const PixiCanvas = (): ReactNode => {
+interface IPixiCanvas {
+    onReady?: () => void;
+    onDestroy?: () => void;
+}
+
+const PixiCanvas = (props: IPixiCanvas): ReactNode => {
     const layout = useSelector<IRootState, ILayoutSettings>((state) => state.app.layout);
     const canvasRef = useRef<HTMLDivElement>(null);
     const appRef = useRef<Application | null>(null);
@@ -41,7 +46,12 @@ const PixiCanvas = (): ReactNode => {
             window.ApiCanvasPixi = app;
 
             createDefaultContainers();
-            updateLayout(layout);
+            createLayout();
+            // updateLayout(layout);
+
+            if (props.onReady) {
+                props.onReady();
+            }
         })();
 
         return () => {
@@ -50,6 +60,10 @@ const PixiCanvas = (): ReactNode => {
             if (appRef.current) {
                 appRef.current.destroy(true, {children: true});
                 appRef.current = null;
+            }
+
+            if (props.onDestroy) {
+                props.onDestroy();
             }
         };
     }, []);

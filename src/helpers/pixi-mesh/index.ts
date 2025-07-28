@@ -167,6 +167,7 @@ export const getCoordinatsIsometricOses = (layout: ILayoutSettings): ICoordinats
  * @param width number толщина линий
  */
 export const drawMeshes = (poiters: ICoordinatsMesh[], container: PIXI.Graphics, color: string, width: number = 1): void => {
+    container.clear();
     for (const point of poiters) {
         container.beginPath();
         container.moveTo(point.startX, point.startY);
