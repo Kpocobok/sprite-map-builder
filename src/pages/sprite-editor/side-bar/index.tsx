@@ -3,7 +3,7 @@ import {ButtonContent, Container, ControllPanel, Icon, Section, SectionButtons, 
 import IconObjectGroup from '../../../components/icons/IconObjectGroup';
 import {useDispatch, useSelector} from 'react-redux';
 import {setLayout, setModal} from '../../../store/slices/app';
-import {MESH_SETTINGS} from '../../../constants/modals';
+import {ADD_IMAGE, MESH_SETTINGS} from '../../../constants/modals';
 import Button from '../../../components/button';
 import IconArrowToDot from '../../../components/icons/IconArrowToDot';
 import {moveCenter} from '../../../helpers/pixi';
@@ -26,6 +26,8 @@ const SideBar = (props: ISideBar): ReactNode => {
 
     const handleShowMeshModal = () => dispatch(setModal({key: MESH_SETTINGS}));
 
+    const handleShowImageAdd = () => dispatch(setModal({key: ADD_IMAGE}));
+
     const handleChangeField = (field: keyof ILayoutSettings, value: any) => dispatch(setLayout({...layout, [field]: value}));
 
     const handleChangeConfig = (field: keyof IConfig, value: string) => props.changeConfig({...props.config, [field]: value});
@@ -36,7 +38,7 @@ const SideBar = (props: ISideBar): ReactNode => {
                 <Section>
                     <SectionTitle>- Настройка спрайта</SectionTitle>
                     <SectionLine>
-                        <Button onClick={handleShowMeshModal} center>
+                        <Button onClick={handleShowImageAdd} center>
                             <Icon>
                                 <IconObjectGroup />
                             </Icon>
@@ -57,10 +59,13 @@ const SideBar = (props: ISideBar): ReactNode => {
                     <SectionTitle>- Основные настройки</SectionTitle>
                     <SectionButtons>
                         <Checkbox value={Boolean(layout.showOs)} onChange={() => handleChangeField('showOs', !layout.showOs)} label='Показывать оси' />
+
                         {layout.showOs && layout.type === 'isometric' ? (
                             <Checkbox value={Boolean(layout.showStandartOs)} onChange={() => handleChangeField('showStandartOs', !layout.showStandartOs)} label='Стандартные оси' />
                         ) : null}
+
                         <Checkbox value={Boolean(layout.showMesh)} onChange={() => handleChangeField('showMesh', !layout.showMesh)} label='Показывать сетку' />
+
                         {layout.horizontal > 63 && layout.vertical > 31 ? (
                             <Checkbox value={Boolean(layout.showText)} onChange={() => handleChangeField('showText', !layout.showText)} label='Координаты' />
                         ) : null}
