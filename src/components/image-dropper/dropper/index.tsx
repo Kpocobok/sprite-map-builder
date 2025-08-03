@@ -1,9 +1,10 @@
 import {useRef, type ReactNode} from 'react';
 import IconImage from '../../icons/IconImage';
 import {Container, ContainerIcon, FilePicker, IconText} from './styles';
+import type {IImage} from '..';
 
 interface IDropper {
-    onChange: (data: string[]) => void;
+    onChange: (data: IImage[]) => void;
 }
 
 const Dropper = (props: IDropper): ReactNode => {
@@ -16,7 +17,7 @@ const Dropper = (props: IDropper): ReactNode => {
     };
 
     const handleChooseImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const promises: Promise<string>[] = [];
+        const promises: Promise<IImage>[] = [];
         const files: FileList | null = event.target.files;
 
         if (!files?.length) return;
@@ -31,16 +32,26 @@ const Dropper = (props: IDropper): ReactNode => {
             }
         }
 
-        Promise.all(promises).then((results: string[]) => {
+        Promise.all(promises).then((results: IImage[]) => {
             props.onChange(results);
         });
     };
 
-    const toBase64 = (file: File): Promise<string> =>
+    const toBase64 = (file: File): Promise<IImage> =>
         new Promise((resolve, reject) => {
             const reader = new FileReader();
+            const image = new Image();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result as string);
+            reader.onload = () => {
+                image.src = reader.result as string;
+                image.onload = () => {
+                    resolve({
+                        img: reader.result as string,
+                        width: image.naturalWidth,
+                        height: image.naturalHeight
+                    });
+                };
+            };
             reader.onerror = reject;
         });
 
